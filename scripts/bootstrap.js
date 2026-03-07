@@ -127,18 +127,10 @@ async function main() {
   }
   console.log('');
 
-  // ─── STEP 5: Create DEX Offers (primary liquidity) ───
-  // AMM pools skipped — they interfere with DEX offers on testnet.
-  // DEX offers alone are reliable and proven (see test 4).
-  //
-  // CRITICAL: We create both directions (buy + sell XRP) per currency.
-  // XRPL auto-cancels your own offers if they cross each other on the
-  // same book. Fix: use a 5% bid-ask spread so they DON'T cross.
-  //   Ask (LP sells XRP): charges 5% more tokens per XRP
-  //   Bid (LP buys XRP):  pays 5% fewer tokens per XRP
-  const ammPools = {}; // empty, kept for config compatibility
+  // ─── STEP 5: Create DEX Offers (fallback liquidity) ───
+  const ammPools = {};
 
-  console.log('STEP 5: Creating DEX offers for liquidity...');
+  console.log('STEP 5: Creating DEX offers for fallback liquidity...');
 
   // Mid-market rates: tokens per XRP
   const dexConfig = {
@@ -152,16 +144,14 @@ async function main() {
 
   for (const [currency, cfg] of Object.entries(dexConfig)) {
     const issuerAddr = issuers[currency].address;
-    const askRate = cfg.midRate * (1 + SPREAD / 2); // LP sells XRP at premium
-    const bidRate = cfg.midRate * (1 - SPREAD / 2); // LP buys XRP at discount
+    const askRate = cfg.midRate * (1 + SPREAD / 2);
+    const bidRate = cfg.midRate * (1 - SPREAD / 2);
 
     const askTokens = (askRate * cfg.xrpSize).toFixed(6);
     const bidTokens = (bidRate * cfg.xrpSize).toFixed(6);
     const xrpDrops = xrpl.xrpToDrops(cfg.xrpSize);
 
     try {
-      // ASK: LP sells XRP, wants tokens (enables: user pays tokens → gets XRP)
-      // Taker pays tokens to LP, taker gets XRP from LP
       await client.submitAndWait(
         {
           TransactionType: 'OfferCreate',
@@ -172,8 +162,6 @@ async function main() {
         { wallet: lpWallet }
       );
 
-      // BID: LP sells tokens, wants XRP (enables: XRP → tokens for receiver)
-      // Taker pays XRP to LP, taker gets tokens from LP
       await client.submitAndWait(
         {
           TransactionType: 'OfferCreate',
@@ -184,18 +172,71 @@ async function main() {
         { wallet: lpWallet }
       );
 
-      console.log(`   ✅ ${currency}/XRP: ask=${askRate.toFixed(2)} bid=${bidRate.toFixed(2)} ${currency}/XRP (${cfg.xrpSize} XRP each side)`);
+      console.log(`   ✅ DEX ${currency}/XRP: ask=${askRate.toFixed(2)} bid=${bidRate.toFixed(2)}`);
     } catch (err) {
-      console.log(`   ❌ ${currency}/XRP offers FAILED: ${err.message}`);
+      console.log(`   ❌ DEX ${currency}/XRP FAILED: ${err.message}`);
     }
   }
 
-  // Verify offers actually stayed on the book
   const lpOffers = await client.request({
     command: 'account_offers',
     account: lpWallet.address,
   });
-  console.log(`   LP has ${lpOffers.result.offers.length} active offers (should be 8)\n`);
+  console.log(`   LP has ${lpOffers.result.offers.length} active DEX offers\n`);
+
+  // ─── STEP 5b: Create AMM Pools (primary liquidity for pathfind) ───
+  console.log('STEP 5b: Creating AMM pools...');
+
+  // Get AMMCreate fee (one account reserve increment)
+  const serverState = await client.request({ command: 'server_state' });
+  const ammFeeDrops = serverState.result.state.validated_ledger.reserve_inc.toString();
+  console.log(`   AMMCreate fee: ${xrpl.dropsToXrp(ammFeeDrops)} XRP per pool`);
+
+  const ammConfig = {
+    USD: { tokenAmount: '200', xrpAmount: 100 },   // 200 USD : 100 XRP → 2 USD/XRP
+    INR: { tokenAmount: '16600', xrpAmount: 100 },  // 16600 INR : 100 XRP → 166 INR/XRP
+    EUR: { tokenAmount: '184', xrpAmount: 100 },    // 184 EUR : 100 XRP → 1.84 EUR/XRP
+    NGN: { tokenAmount: '310000', xrpAmount: 100 }, // 310000 NGN : 100 XRP → 3100 NGN/XRP
+  };
+
+  for (const [currency, cfg] of Object.entries(ammConfig)) {
+    const issuerAddr = issuers[currency].address;
+    try {
+      // Check if AMM already exists
+      try {
+        await client.request({
+          command: 'amm_info',
+          asset: { currency: 'XRP' },
+          asset2: { currency, issuer: issuerAddr },
+          ledger_index: 'validated',
+        });
+        console.log(`   ⏭  AMM ${currency}/XRP already exists, skipping`);
+        ammPools[currency] = true;
+        continue;
+      } catch (checkErr) {
+        if (checkErr.data?.error !== 'actNotFound') throw checkErr;
+      }
+
+      await client.submitAndWait(
+        {
+          TransactionType: 'AMMCreate',
+          Account: lpWallet.address,
+          Amount: { currency, issuer: issuerAddr, value: cfg.tokenAmount },
+          Amount2: xrpl.xrpToDrops(cfg.xrpAmount),
+          TradingFee: 500, // 0.5%
+          Fee: ammFeeDrops,
+        },
+        { autofill: true, wallet: lpWallet, fail_hard: true }
+      );
+
+      ammPools[currency] = true;
+      console.log(`   ✅ AMM ${currency}/XRP: ${cfg.tokenAmount} ${currency} + ${cfg.xrpAmount} XRP`);
+    } catch (err) {
+      console.log(`   ❌ AMM ${currency}/XRP FAILED: ${err.message}`);
+      ammPools[currency] = false;
+    }
+  }
+  console.log('');
 
   // ─── STEP 6: Create Demo User Wallets ───
   console.log('STEP 6: Creating demo user wallets...');
