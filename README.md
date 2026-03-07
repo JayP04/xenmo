@@ -57,7 +57,7 @@ Use the demo user seeds from your bootstrap config.json to import a pre-funded w
 
 - Next.js 14 (App Router)
 - xrpl.js
-- MongoDB Atlas
+- Supabase
 - Tailwind CSS
 - Google Gemini API
 - XRPL Testnet
@@ -67,7 +67,7 @@ Use the demo user seeds from your bootstrap config.json to import a pre-funded w
 ```
 User → Next.js Frontend → API Routes → xrpl.js → XRPL Testnet
                                       ↓
-                                  MongoDB Atlas
+                                  Supabase
                               (users, transactions,
                                requests, escrow codes)
 ```
