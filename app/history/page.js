@@ -50,6 +50,32 @@ export default function History() {
           const isSender = tx.sender === wallet.address;
           const isExpanded = expanded === tx.txHash;
 
+          // Better labels for escrow transactions
+          const isEscrow = tx.type === 'EscrowCreate' || tx.type === 'EscrowFinish';
+          let label, icon, colorClass;
+          if (tx.type === 'EscrowCreate') {
+            label = isSender ? 'Split Locked' : 'Split Pending';
+            icon = '🔒';
+            colorClass = 'text-orange-500';
+          } else if (tx.type === 'EscrowFinish') {
+            label = isSender ? 'Split Released' : 'Split Claimed';
+            icon = isSender ? '↗' : '↙';
+            colorClass = isSender ? 'text-red-500' : 'text-green-600';
+          } else {
+            label = isSender ? 'Sent' : 'Received';
+            icon = isSender ? '↗' : '↙';
+            colorClass = isSender ? 'text-red-500' : 'text-green-600';
+          }
+          const displayAmount = isEscrow
+            ? tx.amountReceived
+            : (isSender ? tx.amountSent : tx.amountReceived);
+          const displayCurrency = isEscrow
+            ? tx.currencyReceived
+            : (isSender ? tx.currencySent : tx.currencyReceived);
+          const sign = (tx.type === 'EscrowCreate' && isSender) ? '-'
+            : (tx.type === 'EscrowFinish' && isSender) ? '-'
+            : (isSender && !isEscrow) ? '-' : '+';
+
           return (
             <div
               key={tx.txHash}
@@ -62,12 +88,12 @@ export default function History() {
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className={`text-xl ${isSender ? 'text-red-400' : 'text-green-500'}`}>
-                      {isSender ? '↗' : '↙'}
+                    <span className={`text-xl ${colorClass}`}>
+                      {icon}
                     </span>
                     <div>
                       <p className="text-sm font-semibold text-gray-900">
-                        {isSender ? 'Sent' : 'Received'} {tx.currencyReceived}
+                        {label} {displayCurrency}
                       </p>
                       <p className="text-xs text-gray-400">
                         {new Date(tx.createdAt).toLocaleDateString()} {new Date(tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -75,8 +101,8 @@ export default function History() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`font-bold ${isSender ? 'text-red-500' : 'text-green-600'}`}>
-                      {isSender ? '-' : '+'}{isSender ? tx.amountSent : tx.amountReceived} {isSender ? tx.currencySent : tx.currencyReceived}
+                    <p className={`font-bold ${colorClass}`}>
+                      {sign}{displayAmount} {displayCurrency}
                     </p>
                   </div>
                 </div>
