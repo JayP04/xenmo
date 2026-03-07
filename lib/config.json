@@ -1,0 +1,54 @@
+{
+  "testnetUrl": "wss://s.altnet.rippletest.net:51233",
+  "explorerUrl": "https://testnet.xrpl.org",
+  "issuers": {
+    "USD": {
+      "address": "rpDQewNonXtX8zKKcLoQYHcWCf2vgiLi6D",
+      "seed": "sEd7eEVjZMUUcDwho2xeDgiRh549nBG"
+    },
+    "INR": {
+      "address": "rDSpREexXe5f4s35e1mFizackmM3FNYm4t",
+      "seed": "sEd7E6Y19Grrvyov9HTeXqSd7idb8rV"
+    },
+    "EUR": {
+      "address": "rDrbKrSz5bZw39dvpshMsArKhkVoXGPUqk",
+      "seed": "sEdS2xFJ2tb4xkwtY5fke4fY5GxgUCg"
+    },
+    "NGN": {
+      "address": "rhj37vBPbyMYBaNYfy3ZbLFnwcNvenky17",
+      "seed": "sEdTfa1PtqshS6yBopJLt4Sxiaz2jQw"
+    }
+  },
+  "lp": {
+    "address": "rNq4Na65Sczmh3D6L2yJP5zTrQpJuC9uKP",
+    "seed": "sEd7WEba8DxcPL1AVLbdaSqHYMRphEc"
+  },
+  "demoUsers": {
+    "user1": {
+      "label": "US User",
+      "address": "rnmxZ5JbStwxr5wbQg4FWr2nmGTzNnA1ni",
+      "seed": "sEdS8xKnr8ZwKk1nEuhsHL4EWgSktBq",
+      "balances": {
+        "USD": "500",
+        "EUR": "200"
+      }
+    },
+    "user2": {
+      "label": "India User",
+      "address": "rB9hefpxvWhoKyqGVHXeLsf4yvpjBExaP8",
+      "seed": "sEdSvJPfoW3KcKJXz3rBDXXK6MAwrH6",
+      "balances": {
+        "INR": "25000"
+      }
+    }
+  },
+  "ammPools": {},
+  "dexOffersCreated": true,
+  "exchangeRates": {
+    "USD/XRP": "1 USD = 0.5 XRP",
+    "INR/XRP": "1 INR = 0.006 XRP (1 USD ≈ 83 INR)",
+    "EUR/XRP": "1 EUR = 0.55 XRP (1 USD ≈ 0.92 EUR)",
+    "NGN/XRP": "1 NGN = 0.00032 XRP (1 USD ≈ 1550 NGN)"
+  },
+  "createdAt": "2026-03-07T05:08:26.933Z"
+}

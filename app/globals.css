@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background: #f8f7f4;
+  min-height: 100dvh;
+}
+
+/* Smooth mobile feel */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
