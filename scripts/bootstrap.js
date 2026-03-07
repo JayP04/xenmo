@@ -20,6 +20,7 @@
 
 import * as xrpl from 'xrpl';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 
 const TESTNET_URL = 'wss://s.altnet.rippletest.net:51233';
 
@@ -349,7 +350,7 @@ async function main() {
     };
   }
 
-  const configPath = new URL('../lib/config.json', import.meta.url).pathname;
+  const configPath = fileURLToPath(new URL('../lib/config.json', import.meta.url));
   fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
   console.log(`✅ Config saved to ${configPath}\n`);
 

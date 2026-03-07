@@ -5,7 +5,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 const WalletContext = createContext(null);
 
 export function WalletProvider({ children }) {
-  const [wallet, setWallet] = useState(null); // { address, seed }
+  const [wallet, setWallet] = useState(null); // { address, seed, username }
   const [loading, setLoading] = useState(true);
 
   // Restore wallet from sessionStorage on mount
@@ -17,8 +17,8 @@ export function WalletProvider({ children }) {
     setLoading(false);
   }, []);
 
-  const login = (address, seed) => {
-    const w = { address, seed };
+  const login = (address, seed, username) => {
+    const w = { address, seed, username };
     setWallet(w);
     sessionStorage.setItem('remitx_wallet', JSON.stringify(w));
   };

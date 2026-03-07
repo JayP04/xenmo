@@ -1,15 +1,16 @@
 // app/send/page.js
 'use client';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useWallet } from '../components/WalletProvider';
 
-export default function Send() {
+function SendInner() {
   const { wallet } = useWallet();
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [dest, setDest] = useState(searchParams.get('to') || '');
+  const [resolvedUser, setResolvedUser] = useState(null);
   const [amount, setAmount] = useState(searchParams.get('amount') || '');
   const [fromCurrency, setFromCurrency] = useState('USD');
   const [toCurrency, setToCurrency] = useState(searchParams.get('currency') || 'INR');
@@ -17,6 +18,35 @@ export default function Send() {
   const [sending, setSending] = useState(false);
   const [receipt, setReceipt] = useState(null);
   const [error, setError] = useState('');
+  const [lookingUp, setLookingUp] = useState(false);
+
+  // Resolve @username to wallet address
+  const resolveRecipient = async () => {
+    const value = dest.trim();
+    if (!value) return;
+    // If it looks like a username (not starting with r), look it up
+    if (!value.startsWith('r')) {
+      const username = value.replace(/^@/, '');
+      setLookingUp(true);
+      try {
+        const res = await fetch(`/api/user?username=${encodeURIComponent(username)}`);
+        const data = await res.json();
+        if (data.success) {
+          setResolvedUser(data.user);
+          setDest(data.user.address);
+          setError('');
+        } else {
+          setResolvedUser(null);
+          setError(`User @${username} not found`);
+        }
+      } catch {
+        setError('Lookup failed');
+      }
+      setLookingUp(false);
+    } else {
+      setResolvedUser(null);
+    }
+  };
 
   const checkRate = async () => {
     setError('');
@@ -107,13 +137,21 @@ export default function Send() {
 
       <div className="space-y-4">
         <div>
-          <label className="text-sm text-gray-500 mb-1 block">Recipient address</label>
+          <label className="text-sm text-gray-500 mb-1 block">Recipient (@username or address)</label>
           <input
-            value={dest}
-            onChange={(e) => setDest(e.target.value)}
-            placeholder="rXXXXXXXXX..."
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl font-mono text-sm focus:outline-none focus:border-brand-500"
+            value={resolvedUser ? `@${resolvedUser.username}` : dest}
+            onChange={(e) => { setDest(e.target.value); setResolvedUser(null); setRate(null); }}
+            onBlur={resolveRecipient}
+            onKeyDown={(e) => e.key === 'Enter' && resolveRecipient()}
+            placeholder="@jayp or rXXXXXXXXX..."
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-brand-500"
           />
+          {lookingUp && <p className="text-xs text-gray-400 mt-1 animate-pulse">Looking up user...</p>}
+          {resolvedUser && (
+            <p className="text-xs text-green-600 mt-1">
+              ✓ {resolvedUser.displayName || resolvedUser.username} — <span className="font-mono text-gray-400">{resolvedUser.address.slice(0, 12)}...</span>
+            </p>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-3">
@@ -204,5 +242,13 @@ export default function Send() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function Send() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-screen text-gray-400">Loading...</div>}>
+      <SendInner />
+    </Suspense>
   );
 }

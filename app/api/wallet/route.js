@@ -6,8 +6,18 @@ import { supabase } from '@/lib/supabase';
 
 export async function POST(req) {
   try {
-    const { displayName, baseCurrency } = await req.json().catch(() => ({}));
+    const { displayName, baseCurrency, username } = await req.json().catch(() => ({}));
     const currency = baseCurrency || 'USD';
+
+    if (!username || !/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+      return NextResponse.json({ error: 'Username must be 3-20 characters (letters, numbers, underscores)' }, { status: 400 });
+    }
+
+    // Check username uniqueness
+    const { data: existing } = await supabase.from('users').select('id').eq('username', username.toLowerCase()).single();
+    if (existing) {
+      return NextResponse.json({ error: 'Username already taken' }, { status: 409 });
+    }
 
     const wallet = await createWallet();
 
@@ -18,6 +28,7 @@ export async function POST(req) {
       wallet_address: wallet.address,
       wallet_seed: wallet.seed,
       display_name: displayName || '',
+      username: username.toLowerCase(),
       base_currency: currency,
     });
 
@@ -25,6 +36,7 @@ export async function POST(req) {
       success: true,
       address: wallet.address,
       seed: wallet.seed,
+      username: username.toLowerCase(),
       baseCurrency: currency,
       startingBalance: startingAmounts[currency],
     });
@@ -36,22 +48,37 @@ export async function POST(req) {
 
 export async function PUT(req) {
   try {
-    const { seed, displayName, baseCurrency } = await req.json();
+    const { seed, displayName, baseCurrency, username } = await req.json();
     if (!seed) return NextResponse.json({ error: 'Seed is required' }, { status: 400 });
 
     const wallet = await importWallet(seed);
 
-    await supabase.from('users').upsert(
-      {
-        wallet_address: wallet.address,
-        wallet_seed: wallet.seed,
-        display_name: displayName || '',
-        base_currency: baseCurrency || 'USD',
-      },
-      { onConflict: 'wallet_address' }
-    );
+    // Check if user already exists (re-login)
+    const { data: existingUser } = await supabase.from('users').select('*').eq('wallet_address', wallet.address).single();
 
-    return NextResponse.json({ success: true, address: wallet.address });
+    if (existingUser) {
+      return NextResponse.json({ success: true, address: wallet.address, username: existingUser.username });
+    }
+
+    // New import — require username
+    if (!username || !/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+      return NextResponse.json({ error: 'Username required for new wallets (3-20 chars, letters/numbers/underscores)' }, { status: 400 });
+    }
+
+    const { data: taken } = await supabase.from('users').select('id').eq('username', username.toLowerCase()).single();
+    if (taken) {
+      return NextResponse.json({ error: 'Username already taken' }, { status: 409 });
+    }
+
+    await supabase.from('users').insert({
+      wallet_address: wallet.address,
+      wallet_seed: wallet.seed,
+      display_name: displayName || '',
+      username: username.toLowerCase(),
+      base_currency: baseCurrency || 'USD',
+    });
+
+    return NextResponse.json({ success: true, address: wallet.address, username: username.toLowerCase() });
   } catch (err) {
     console.error('Wallet import failed:', err);
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
