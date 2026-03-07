@@ -39,7 +39,7 @@ export async function POST(req) {
     }
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -51,6 +51,7 @@ export async function POST(req) {
     );
 
     const data = await response.json();
+    console.log('Gemini response:', JSON.stringify(data, null, 2));
     const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I could not generate a response.';
 
     return NextResponse.json({ reply });
