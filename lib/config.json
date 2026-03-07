@@ -3,31 +3,31 @@
   "explorerUrl": "https://testnet.xrpl.org",
   "issuers": {
     "USD": {
-      "address": "rpDQewNonXtX8zKKcLoQYHcWCf2vgiLi6D",
-      "seed": "sEd7eEVjZMUUcDwho2xeDgiRh549nBG"
+      "address": "rMC9jcfndXcu7MB4Z5vHZKVHLKt8LQTUnW",
+      "seed": "sEdTmPPCg52p6pTKSNAG8CgDKwW1QNL"
     },
     "INR": {
-      "address": "rDSpREexXe5f4s35e1mFizackmM3FNYm4t",
-      "seed": "sEd7E6Y19Grrvyov9HTeXqSd7idb8rV"
+      "address": "rGsDoKZr7dFrx1jeZvgWujRfaJHP3XZ1Ld",
+      "seed": "sEdVhz4XhjgdX3t4rVyoyC3vMdLqs2W"
     },
     "EUR": {
-      "address": "rDrbKrSz5bZw39dvpshMsArKhkVoXGPUqk",
-      "seed": "sEdS2xFJ2tb4xkwtY5fke4fY5GxgUCg"
+      "address": "rEaCJnfVhMuBHW9GL6MstX2AShdfagQju",
+      "seed": "sEdVFmZNKHRNfRihzLRhMSvmjhm26Ri"
     },
     "NGN": {
-      "address": "rhj37vBPbyMYBaNYfy3ZbLFnwcNvenky17",
-      "seed": "sEdTfa1PtqshS6yBopJLt4Sxiaz2jQw"
+      "address": "rnN5twGtWCbsTM1Q4AYynT5PPjgn13G2Kd",
+      "seed": "sEdTyYThz2Vwc8DEGtdi72TgnZvJWfS"
     }
   },
   "lp": {
-    "address": "rNq4Na65Sczmh3D6L2yJP5zTrQpJuC9uKP",
-    "seed": "sEd7WEba8DxcPL1AVLbdaSqHYMRphEc"
+    "address": "rwTUJqkfKQfTWXzqkqsrwr7cHQzUZzbiyU",
+    "seed": "sEd7WiWMzqR8U5BgNpLFWPcvMnUHxQL"
   },
   "demoUsers": {
     "user1": {
       "label": "US User",
-      "address": "rnmxZ5JbStwxr5wbQg4FWr2nmGTzNnA1ni",
-      "seed": "sEdS8xKnr8ZwKk1nEuhsHL4EWgSktBq",
+      "address": "rPVm1iNYLzecgziPhrXCZTqT6TSdh24j33",
+      "seed": "sEd726vFHTPUyzaM3Ycz1RbCC3T4AMa",
       "balances": {
         "USD": "500",
         "EUR": "200"
@@ -35,14 +35,19 @@
     },
     "user2": {
       "label": "India User",
-      "address": "rB9hefpxvWhoKyqGVHXeLsf4yvpjBExaP8",
-      "seed": "sEdSvJPfoW3KcKJXz3rBDXXK6MAwrH6",
+      "address": "rLooD7aSVABQ9PR8e7HiMwLTEZE5tCecNf",
+      "seed": "sEdTWKqPwdTuwxudMtQdxzipcrzaS1S",
       "balances": {
         "INR": "25000"
       }
     }
   },
-  "ammPools": {},
+  "ammPools": {
+    "USD": true,
+    "INR": true,
+    "EUR": true,
+    "NGN": true
+  },
   "dexOffersCreated": true,
   "exchangeRates": {
     "USD/XRP": "1 USD = 0.5 XRP",
@@ -50,5 +55,5 @@
     "EUR/XRP": "1 EUR = 0.55 XRP (1 USD ≈ 0.92 EUR)",
     "NGN/XRP": "1 NGN = 0.00032 XRP (1 USD ≈ 1550 NGN)"
   },
-  "createdAt": "2026-03-07T05:08:26.933Z"
+  "createdAt": "2026-03-07T07:24:55.979Z"
 }
