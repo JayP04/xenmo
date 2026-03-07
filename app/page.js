@@ -10,6 +10,7 @@ export default function Home() {
   const [mode, setMode] = useState(null); // null | 'create' | 'import'
   const [seed, setSeed] = useState('');
   const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   const [currency, setCurrency] = useState('USD');
   const [working, setWorking] = useState(false);
   const [error, setError] = useState('');
@@ -26,12 +27,12 @@ export default function Home() {
       const res = await fetch('/api/wallet', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ displayName: name, baseCurrency: currency }),
+        body: JSON.stringify({ displayName: name, baseCurrency: currency, username }),
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       setCreatedSeed(data.seed);
-      login(data.address, data.seed);
+      login(data.address, data.seed, data.username);
     } catch (err) {
       setError(err.message);
     }
@@ -45,11 +46,11 @@ export default function Home() {
       const res = await fetch('/api/wallet', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ seed, displayName: name, baseCurrency: currency }),
+        body: JSON.stringify({ seed, displayName: name, baseCurrency: currency, username }),
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
-      login(data.address, seed);
+      login(data.address, seed, data.username);
       router.push('/dashboard');
     } catch (err) {
       setError(err.message);
@@ -124,6 +125,20 @@ export default function Home() {
       {mode === 'create' && (
         <div className="space-y-4">
           <button onClick={() => setMode(null)} className="text-sm text-gray-400 mb-2">← Back</button>
+          <div>
+            <label className="text-sm text-gray-500 mb-1 block">Choose a username</label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">@</span>
+              <input
+                value={username}
+                onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, '').slice(0, 20))}
+                placeholder="jayp"
+                maxLength={20}
+                className="w-full pl-9 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-500"
+              />
+            </div>
+            <p className="text-xs text-gray-400 mt-1">3-20 characters. Letters, numbers, underscores.</p>
+          </div>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -146,7 +161,7 @@ export default function Home() {
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <button
             onClick={handleCreate}
-            disabled={working}
+            disabled={working || !username || username.length < 3}
             className="w-full py-4 bg-brand-600 text-white rounded-2xl font-semibold disabled:opacity-50"
           >
             {working ? 'Creating wallet (30-60s)...' : 'Create Wallet'}
@@ -166,6 +181,20 @@ export default function Home() {
               placeholder="sEdXXXXXXXXXXXXXXXX..."
               className="w-full px-4 py-3 border border-gray-200 rounded-xl font-mono text-sm focus:outline-none focus:border-brand-500"
             />
+          </div>
+          <div>
+            <label className="text-sm text-gray-500 mb-1 block">Choose a username (if first time)</label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">@</span>
+              <input
+                value={username}
+                onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, '').slice(0, 20))}
+                placeholder="jayp"
+                maxLength={20}
+                className="w-full pl-9 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-500"
+              />
+            </div>
+            <p className="text-xs text-gray-400 mt-1">Leave blank if you already have an account.</p>
           </div>
           <select
             value={currency}

@@ -55,6 +55,9 @@ export default function Dashboard() {
 
       {/* Wallet address */}
       <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-gray-100">
+        {wallet.username && (
+          <p className="text-sm font-semibold text-brand-600 mb-1">@{wallet.username}</p>
+        )}
         <p className="text-xs text-gray-400 mb-1">Your wallet</p>
         <div className="flex items-center gap-2">
           <code className="text-xs text-gray-600 font-mono flex-1 truncate">{wallet.address}</code>
@@ -113,6 +116,12 @@ export default function Dashboard() {
           ⊞ Scan QR
         </button>
         <button
+          onClick={() => router.push('/split')}
+          className="bg-brand-600 text-white py-4 rounded-2xl font-semibold active:bg-brand-700"
+        >
+          ✂ Split
+        </button>
+        <button
           onClick={() => router.push('/send-code')}
           className="bg-white text-gray-700 py-4 rounded-2xl font-semibold border-2 border-gray-200 active:bg-gray-50"
         >
@@ -120,7 +129,7 @@ export default function Dashboard() {
         </button>
         <button
           onClick={() => router.push('/request')}
-          className="bg-white text-gray-700 py-4 rounded-2xl font-semibold border-2 border-gray-200 active:bg-gray-50"
+          className="bg-white text-gray-700 py-4 rounded-2xl font-semibold border-2 border-gray-200 active:bg-gray-50 col-span-2"
         >
           ↙ Request
         </button>
