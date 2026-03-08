@@ -1,11 +1,51 @@
 // app/page.js
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWallet } from './components/WalletProvider';
 import dynamic from 'next/dynamic';
 
 const Globe = dynamic(() => import('./components/Globe'), { ssr: false });
+
+// Floating transfer popup — shows 1-2 at a time
+function TransferPopup({ transfer, position }) {
+  return (
+    <div
+      className={`absolute ${position} animate-fade-in-out pointer-events-none z-20`}
+    >
+      <div className="bg-[#1C1C1E]/90 border border-[#2C2C2E] rounded-xl px-3 py-2 max-w-[170px]">
+        <div className="flex items-center gap-1.5 mb-0.5">
+          <div className="w-1.5 h-1.5 rounded-full bg-[#0A84FF]" />
+          <span className="text-[10px] text-[#8E8E93] truncate">{transfer.from}</span>
+          <span className="text-[10px] text-[#636366]">→</span>
+          <span className="text-[10px] text-[#8E8E93] truncate">{transfer.to}</span>
+        </div>
+        <div className="flex items-baseline justify-between">
+          <span className="text-xs font-bold text-[#F5F5F7]">{transfer.amt}</span>
+          <span className="text-[9px] text-[#30D158] ml-2">{transfer.cur}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const DEMO_TRANSFERS = [
+  { from: 'Kansas City', to: 'New Delhi', amt: '$1,200', cur: 'USD → INR' },
+  { from: 'London', to: 'Lagos', amt: '£800', cur: 'GBP → NGN' },
+  { from: 'Tokyo', to: 'São Paulo', amt: '¥50,000', cur: 'JPY → BRL' },
+  { from: 'Dubai', to: 'Karachi', amt: 'AED 2,000', cur: 'AED → PKR' },
+  { from: 'New York', to: 'London', amt: '$3,500', cur: 'USD → GBP' },
+  { from: 'Paris', to: 'Nairobi', amt: '€1,800', cur: 'EUR → KES' },
+  { from: 'Singapore', to: 'Mumbai', amt: 'S$950', cur: 'SGD → INR' },
+  { from: 'Chicago', to: 'Bangalore', amt: '$4,200', cur: 'USD → INR' },
+];
+
+const POPUP_POSITIONS = [
+  'top-[15%] left-3',
+  'top-[35%] right-3',
+  'top-[55%] left-4',
+  'top-[25%] right-4',
+];
 
 export default function Home() {
   const { wallet, loading, login } = useWallet();
@@ -18,10 +58,27 @@ export default function Home() {
   const [working, setWorking] = useState(false);
   const [error, setError] = useState('');
   const [createdSeed, setCreatedSeed] = useState('');
+  const [popups, setPopups] = useState([]);
+  const popupIdx = useRef(0);
 
   useEffect(() => {
     if (!loading && wallet) router.push('/dashboard');
   }, [loading, wallet, router]);
+
+  // Cycle through demo transfers, show 1 at a time
+  useEffect(() => {
+    const show = () => {
+      const transfer = DEMO_TRANSFERS[popupIdx.current % DEMO_TRANSFERS.length];
+      const position = POPUP_POSITIONS[popupIdx.current % POPUP_POSITIONS.length];
+      const id = Date.now();
+      popupIdx.current++;
+      setPopups(prev => [...prev.slice(-1), { ...transfer, id, position }]);
+      setTimeout(() => setPopups(prev => prev.filter(p => p.id !== id)), 7000);
+    };
+    show();
+    const interval = setInterval(show, 4000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleCreate = async () => {
     setWorking(true);
@@ -100,21 +157,26 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-[#161618] overflow-y-auto">
-      {/* Globe section — interactive, touch-draggable */}
-      <div className="relative w-full" style={{ height: '55vh' }}>
-        <Globe />
-        {/* Title overlay on top of globe */}
-        <div className="absolute inset-x-0 top-0 z-10 text-center pt-12 pointer-events-none">
-          <h1 className="text-4xl font-bold">
-            <span className="text-[#F5F5F7]">Remit</span><span className="text-[#0A84FF]">X</span>
-          </h1>
-          <p className="text-[#8E8E93] text-sm mt-1">Send money anywhere. Instantly.</p>
-        </div>
+    <div className="fixed inset-0 bg-[#161618] flex flex-col">
+      {/* Title — clean, no globe behind */}
+      <div className="text-center pt-12 pb-3 flex-shrink-0 relative z-10">
+        <h1 className="text-4xl font-bold">
+          <span className="text-[#F5F5F7]">Remit</span><span className="text-[#0A84FF]">X</span>
+        </h1>
+        <p className="text-[#8E8E93] text-sm mt-1">Send money anywhere. Instantly.</p>
       </div>
 
-      {/* Wallet section */}
-      <div className="px-5 pt-6 pb-12 max-w-md mx-auto">
+      {/* Globe — fills middle space, interactive */}
+      <div className="flex-1 relative min-h-0">
+        <Globe />
+        {/* Floating transaction popups */}
+        {popups.map(p => (
+          <TransferPopup key={p.id} transfer={p} position={p.position} />
+        ))}
+      </div>
+
+      {/* Bottom wallet panel */}
+      <div className="flex-shrink-0 px-5 pt-4 pb-8 safe-bottom relative z-10">
         {/* Mode selection */}
         {!mode && (
           <div className="space-y-3">
