@@ -3,6 +3,7 @@
 import { NextResponse } from 'next/server';
 import * as xrpl from 'xrpl';
 import { getClient } from '@/lib/xrpl-client';
+import { supabase } from '@/lib/supabase';
 import config from '@/lib/config.json';
 
 const MID_RATES_TO_XRP = { USD: 1.36, INR: 125, EUR: 1.17, NGN: 1878 };
@@ -37,7 +38,7 @@ export async function GET(req) {
 
     const metaOf = (t) => typeof t.meta === 'object' ? t.meta : null;
 
-    const transactions = response.result.transactions
+    const txPromises = response.result.transactions
       .filter((t) => {
         const meta = metaOf(t);
         if (!meta || meta.TransactionResult !== 'tesSUCCESS') return false;
@@ -46,7 +47,7 @@ export async function GET(req) {
         const tx = t.tx_json || t.tx || t;
         return SHOW_TYPES.has(tx.TransactionType);
       })
-      .map((t) => {
+      .map(async (t) => {
         const tx = t.tx_json || t.tx || t;
         const meta = t.meta;
         const type = tx.TransactionType;
@@ -168,23 +169,43 @@ export async function GET(req) {
           }
         }
 
+        // Look up the stored display amount/currency from the DB
+        // EscrowCreate: sequence = tx.Sequence, owner = tx.Account
+        // EscrowFinish: sequence = tx.OfferSequence, owner = tx.Owner
+        const escrowSeq = type === 'EscrowCreate' ? tx.Sequence : tx.OfferSequence;
+        const escrowOwner = type === 'EscrowCreate' ? tx.Account : (tx.Owner || tx.Account);
+        let displayAmount = escrowAmount;
+        let displayCurrency = 'USD'; // default if DB lookup fails
+
+        const { data: escrowRecord } = await supabase
+          .from('escrow_codes')
+          .select('amount, preimage_hex')
+          .eq('escrow_sequence', escrowSeq)
+          .eq('owner_address', escrowOwner)
+          .single();
+
+        if (escrowRecord) {
+          displayAmount = escrowRecord.amount || displayAmount;
+          displayCurrency = escrowRecord.preimage_hex || 'USD';
+        }
+
         return {
           txHash: hash,
           type,
           sender: escrowSender,
           receiver: escrowReceiver,
-          amountSent: escrowAmount,
-          currencySent: 'XRP',
-          amountReceived: escrowAmount,
-          currencyReceived: 'XRP',
+          amountSent: displayAmount,
+          currencySent: displayCurrency,
+          amountReceived: displayAmount,
+          currencyReceived: displayCurrency,
           effectiveRate: '1',
-          xrplFee: fee,
+          fee: `${CURRENCY_SYMBOLS[displayCurrency] || ''}0.00`,
           explorerUrl: `${config.explorerUrl}/transactions/${hash}`,
-          balanceChanges,
           createdAt: date,
         };
-      })
-      .slice(0, 20); // Return at most 20 meaningful entries
+      });
+
+    const transactions = (await Promise.all(txPromises)).slice(0, 20); // Return at most 20 meaningful entries
 
     return NextResponse.json({ success: true, transactions });
   } catch (err) {

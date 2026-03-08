@@ -52,7 +52,7 @@ export default function Claim() {
         <div className="text-center mb-6">
           <div className="text-5xl mb-3">🎉</div>
           <h2 className="text-xl font-bold text-gray-900">Funds Claimed!</h2>
-          <p className="text-lg font-semibold text-green-600 mt-2">{result.amount} XRP received</p>
+          <p className="text-lg font-semibold text-green-600 mt-2">{result.amount} {result.currency || 'USD'} received</p>
         </div>
         <div className="bg-white rounded-2xl p-4 shadow-sm">
           <a

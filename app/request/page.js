@@ -131,7 +131,7 @@ export default function Request() {
       });
       const data = await res.json();
       if (data.success) {
-        setClaimSuccess({ id: escrow.id, amount: data.amount, explorerUrl: data.explorerUrl });
+        setClaimSuccess({ id: escrow.id, amount: data.amount, currency: data.currency, explorerUrl: data.explorerUrl });
         setClaimingId(null);
         setClaimCode('');
         fetchSplits();
@@ -156,7 +156,7 @@ export default function Request() {
       });
       const data = await res.json();
       if (data.success) {
-        setClaimSuccess({ amount: data.amount, explorerUrl: data.explorerUrl });
+        setClaimSuccess({ amount: data.amount, currency: data.currency, explorerUrl: data.explorerUrl });
         setDirectCode('');
         fetchSplits();
       } else {
@@ -213,7 +213,7 @@ export default function Request() {
             <div className="bg-green-50 border border-green-200 rounded-xl p-4">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-lg">🎉</span>
-                <span className="font-semibold text-green-700">{claimSuccess.amount} XRP claimed!</span>
+                <span className="font-semibold text-green-700">{claimSuccess.amount} {claimSuccess.currency || 'USD'} claimed!</span>
               </div>
               <a
                 href={claimSuccess.explorerUrl}
@@ -273,7 +273,7 @@ export default function Request() {
                       }
                     </p>
                   </div>
-                  <p className="font-bold text-lg text-gray-900">{escrow.amount} <span className="text-sm text-gray-400">XRP</span></p>
+                  <p className="font-bold text-lg text-gray-900">{escrow.amount} <span className="text-sm text-gray-400">{escrow.currency || 'USD'}</span></p>
                 </div>
 
                 {!isClaiming && !expired && (

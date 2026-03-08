@@ -7,7 +7,8 @@ import { useWallet } from '../components/WalletProvider';
 export default function SendCode() {
   const { wallet } = useWallet();
   const router = useRouter();
-  const [xrpAmount, setXrpAmount] = useState('');
+  const [amount, setAmount] = useState('');
+  const [currency, setCurrency] = useState('USD');
   const [recipientUsername, setRecipientUsername] = useState('');
   const [creating, setCreating] = useState(false);
   const [escrow, setEscrow] = useState(null); // { code, expiresAt, amount }
@@ -35,7 +36,8 @@ export default function SendCode() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           senderSeed: wallet.seed,
-          xrpAmount,
+          amount,
+          currency,
           recipientUsername: recipientUsername.trim() || undefined,
           cancelSeconds: 300,
         }),
@@ -77,7 +79,7 @@ export default function SendCode() {
               <span className="text-red-500 font-semibold">Expired — funds returned to you</span>
             )}
           </p>
-          <p className="text-lg font-semibold mt-3">{escrow.amount} XRP</p>
+          <p className="text-lg font-semibold mt-3">{escrow.displayAmount} {escrow.currency}</p>
         </div>
 
         <button
@@ -115,23 +117,38 @@ export default function SendCode() {
           />
           <p className="text-xs text-gray-400 mt-1">Leave blank to send to anyone with the code.</p>
         </div>
-        <div>
-          <label className="text-sm text-gray-500 mb-1 block">Amount (XRP)</label>
-          <input
-            type="number"
-            value={xrpAmount}
-            onChange={(e) => setXrpAmount(e.target.value)}
-            placeholder="25"
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-500"
-          />
-          <p className="text-xs text-gray-400 mt-1">Escrow locks XRP for 5 minutes. Auto-refunded if unclaimed.</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-sm text-gray-500 mb-1 block">Amount</label>
+            <input
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="50.00"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-500"
+            />
+          </div>
+          <div>
+            <label className="text-sm text-gray-500 mb-1 block">Currency</label>
+            <select
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white"
+            >
+              <option value="USD">USD</option>
+              <option value="INR">INR</option>
+              <option value="EUR">EUR</option>
+              <option value="NGN">NGN</option>
+            </select>
+          </div>
+          <p className="text-xs text-gray-400 col-span-2">Funds locked for 5 minutes. Auto-refunded if unclaimed.</p>
         </div>
 
         {error && <p className="text-red-500 text-sm">{error}</p>}
 
         <button
           onClick={handleCreate}
-          disabled={creating || !xrpAmount}
+          disabled={creating || !amount}
           className="w-full py-4 bg-brand-600 text-white rounded-2xl font-semibold disabled:opacity-50"
         >
           {creating ? 'Creating escrow...' : 'Generate Code'}

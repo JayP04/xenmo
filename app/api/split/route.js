@@ -8,14 +8,19 @@ import * as xrpl from 'xrpl';
 import { generateEscrowCode, codeToCondition, createEscrow, finishEscrow } from '@/lib/xrpl-escrow';
 import { supabase } from '@/lib/supabase';
 
+const MID_RATES_TO_XRP = { USD: 1.36, INR: 125, EUR: 1.17, NGN: 1878 };
+const VALID_CURRENCIES = ['USD', 'INR', 'EUR', 'NGN'];
+
 export async function POST(req) {
   try {
-    const { senderSeed, splits, cancelSeconds } = await req.json();
-    // splits: [{ username, amount }]
+    const { senderSeed, splits, currency, cancelSeconds } = await req.json();
+    // splits: [{ username, amount }]  — amount is in user's currency
 
     if (!senderSeed || !splits || !Array.isArray(splits) || splits.length === 0) {
       return NextResponse.json({ error: 'senderSeed and splits[] required' }, { status: 400 });
     }
+
+    const cur = VALID_CURRENCIES.includes(currency) ? currency : 'USD';
 
     if (splits.length > 10) {
       return NextResponse.json({ error: 'Maximum 10 recipients per split' }, { status: 400 });
@@ -63,17 +68,20 @@ export async function POST(req) {
     for (const split of resolvedSplits) {
       const codeData = generateEscrowCode();
 
+      // Convert display amount to XRP for the on-chain escrow
+      const xrpAmount = (parseFloat(split.amount) / MID_RATES_TO_XRP[cur]).toFixed(6);
+
       const escrow = await createEscrow(
         senderSeed,
         split.address,
-        split.amount,
+        xrpAmount,
         codeData.conditionHex,
         cancelSeconds || 600 // 10 min default for splits
       );
 
       const { error: insertErr } = await supabase.from('escrow_codes').insert({
         human_code: codeData.humanCode,
-        preimage_hex: '',
+        preimage_hex: cur,
         condition_hex: codeData.conditionHex,
         fulfillment_hex: '',
         owner_address: escrow.ownerAddress,
@@ -107,6 +115,7 @@ export async function POST(req) {
       success: true,
       groupId,
       totalAmount: totalAmount.toFixed(2),
+      currency: cur,
       splitCount: results.length,
       splits: results,
     });
@@ -126,7 +135,7 @@ export async function GET(req) {
     if (groupId) {
       const { data: escrows, error } = await supabase
         .from('escrow_codes')
-        .select('human_code, split_recipient_username, amount, status, expires_at, destination_address, sender_username')
+        .select('human_code, split_recipient_username, amount, preimage_hex, status, expires_at, destination_address, sender_username')
         .eq('split_group_id', groupId)
         .order('created_at', { ascending: true });
 
@@ -140,6 +149,7 @@ export async function GET(req) {
         splits: escrows.map((e) => ({
           username: e.split_recipient_username,
           amount: e.amount,
+          currency: e.preimage_hex || 'USD',
           code: e.human_code,
           status: e.status,
           expiresAt: e.expires_at,
@@ -154,7 +164,7 @@ export async function GET(req) {
 
     const { data: escrows, error } = await supabase
       .from('escrow_codes')
-      .select('id, split_group_id, split_recipient_username, sender_username, amount, status, expires_at, created_at')
+      .select('id, split_group_id, split_recipient_username, sender_username, amount, preimage_hex, status, expires_at, created_at')
       .eq('destination_address', address)
       .not('split_group_id', 'is', null)
       .order('created_at', { ascending: false })
@@ -169,6 +179,7 @@ export async function GET(req) {
         groupId: e.split_group_id,
         senderUsername: e.sender_username,
         amount: e.amount,
+        currency: e.preimage_hex || 'USD',
         status: e.status,
         expiresAt: e.expires_at,
         createdAt: e.created_at,
@@ -193,7 +204,7 @@ export async function PUT(req) {
 
     const { data: escrowRecord, error: dbErr } = await supabase
       .from('escrow_codes')
-      .select('id, owner_address, escrow_sequence, condition_hex, expires_at, amount, status')
+      .select('id, owner_address, escrow_sequence, condition_hex, expires_at, amount, preimage_hex, status')
       .eq('id', escrowId)
       .eq('status', 'pending')
       .single();
@@ -231,6 +242,7 @@ export async function PUT(req) {
       hash: result.hash,
       explorerUrl: result.explorerUrl,
       amount: escrowRecord.amount,
+      currency: escrowRecord.preimage_hex || 'USD',
     });
   } catch (err) {
     console.error('Split claim failed:', err);
