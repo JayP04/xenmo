@@ -9,6 +9,7 @@ export default function Split() {
   const router = useRouter();
 
   const [totalAmount, setTotalAmount] = useState('');
+  const [currency, setCurrency] = useState('USD');
   const [recipients, setRecipients] = useState([{ username: '', amount: '', resolved: null, error: '' }]);
   const [splitMode, setSplitMode] = useState('equal'); // 'equal' | 'custom'
   const [sending, setSending] = useState(false);
@@ -87,7 +88,7 @@ export default function Split() {
       const res = await fetch('/api/split', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ senderSeed: wallet.seed, splits }),
+        body: JSON.stringify({ senderSeed: wallet.seed, splits, currency }),
       });
       const data = await res.json();
       if (data.success) setResult(data);
@@ -200,6 +201,23 @@ export default function Split() {
         </div>
       )}
 
+      {/* Currency selector for custom mode */}
+      {splitMode === 'custom' && (
+        <div className="mb-5">
+          <label className="text-sm text-gray-500 mb-1 block">Currency</label>
+          <select
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white"
+          >
+            <option value="USD">USD</option>
+            <option value="INR">INR</option>
+            <option value="EUR">EUR</option>
+            <option value="NGN">NGN</option>
+          </select>
+        </div>
+      )}
+
       {/* Recipients */}
       <div className="space-y-3 mb-4">
         <label className="text-sm text-[#8E8E93] block">Recipients</label>
@@ -288,7 +306,7 @@ export default function Split() {
         disabled={!canSend}
         className="w-full py-4 rounded-2xl font-semibold bg-[#0A84FF] text-white disabled:opacity-50"
       >
-        {sending ? 'Creating escrows...' : `Split ${computedTotal || '0'} XRP`}
+        {sending ? 'Creating escrows...' : `Split ${computedTotal || '0'} ${currency}`}
       </button>
     </div>
   );

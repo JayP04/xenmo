@@ -131,7 +131,7 @@ export default function Request() {
       });
       const data = await res.json();
       if (data.success) {
-        setClaimSuccess({ id: escrow.id, amount: data.amount, explorerUrl: data.explorerUrl });
+        setClaimSuccess({ id: escrow.id, amount: data.amount, currency: data.currency, explorerUrl: data.explorerUrl });
         setClaimingId(null);
         setClaimCode('');
         fetchSplits();
@@ -156,7 +156,7 @@ export default function Request() {
       });
       const data = await res.json();
       if (data.success) {
-        setClaimSuccess({ amount: data.amount, explorerUrl: data.explorerUrl });
+        setClaimSuccess({ amount: data.amount, currency: data.currency, explorerUrl: data.explorerUrl });
         setDirectCode('');
         fetchSplits();
       } else {
