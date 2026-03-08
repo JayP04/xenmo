@@ -22,12 +22,33 @@
   "lp": {
     "address": "rwQ57tyrSQ36y4yAx1kd6xoGWXZtnhMfeN",
     "seed": "sEdVgPUiC86ebQsnB1gJivjF1Q6eFh2"
+      "address": "rN4zqLsbBu4Swo1yRLEVKW4AsHYQrfQMj",
+      "seed": "sEdT79gHk6rK7ECYLEcYNB2db8FYFN3"
+    },
+    "INR": {
+      "address": "rGrQCk56hNhogNL7YQeESGzgMcSi52GczU",
+      "seed": "sEdVoQtEpsUzXwDjbzziDTNk1GRjzhG"
+    },
+    "EUR": {
+      "address": "rNDgH87Lf9xQa8WdAsk9RVpj9KfRPVhCVs",
+      "seed": "sEdTVNCXD5UPGM9mx6HMVzzmFyrUQmB"
+    },
+    "NGN": {
+      "address": "rBz7reDA8RDaXK5urAcqc55tRoZarR2f7",
+      "seed": "sEdS4VA7dch9PcWm6avNuqB5m9E26Kc"
+    }
+  },
+  "lp": {
+    "address": "rpfu67Wk93WGp6JpLXzLc827o7Sjh1vCYL",
+    "seed": "sEdTYZKTmm1QA1dw3aAAntFULyms77j"
   },
   "demoUsers": {
     "user1": {
       "label": "US User",
       "address": "rDePrCNLjSGYoXkoQ9MDUenMPLoqfsD9XC",
       "seed": "sEd7yMQwvuZyQkh9C9s3ZTKyh5NKrqQ",
+      "address": "rs5WHPMWDXP5mL9qG6pxDLE8s1aSAdBU3j",
+      "seed": "sEdV3G6ARKeeJjua3vSv597tHXyo6sd",
       "balances": {
         "USD": "500",
         "EUR": "200"
@@ -37,6 +58,8 @@
       "label": "India User",
       "address": "rG7nyagrRM62DgWo5foW7WZmwYqZNXVyG7",
       "seed": "sEdSAgqJrD94vFGrZTFFMbxk2XcC8HS",
+      "address": "rM6HBtnMHQXfhh6xp5B5s3HumycwYWgYKd",
+      "seed": "sEdSSdu1Mwpzb6bmnFCofw4eqPHgMxh",
       "balances": {
         "INR": "25000"
       }

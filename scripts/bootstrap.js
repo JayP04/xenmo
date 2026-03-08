@@ -27,10 +27,10 @@ const TESTNET_URL = 'wss://s.altnet.rippletest.net:51233';
 // Currencies we support and their simulated exchange rates to USD
 // Pool XRP amounts kept small — LP wallet has limited faucet XRP
 const CURRENCIES = {
-  USD: { rate: 1, poolTokenAmount: '500', poolXrpAmount: '250' },
-  INR: { rate: 83, poolTokenAmount: '40000', poolXrpAmount: '250' },
-  EUR: { rate: 0.92, poolTokenAmount: '460', poolXrpAmount: '250' },
-  NGN: { rate: 1550, poolTokenAmount: '750000', poolXrpAmount: '250' },
+  USD: { rate: 1, poolTokenAmount: '340', poolXrpAmount: '250' },
+  INR: { rate: 91.96, poolTokenAmount: '31250', poolXrpAmount: '250' },
+  EUR: { rate: 0.86, poolTokenAmount: '293', poolXrpAmount: '250' },
+  NGN: { rate: 1381.47, poolTokenAmount: '469500', poolXrpAmount: '250' },
 };
 
 async function createFundedWallet(client, label) {
@@ -135,10 +135,10 @@ async function main() {
 
   // Mid-market rates: tokens per XRP
   const dexConfig = {
-    USD: { midRate: 2, xrpSize: 80 },        // 1 XRP = 2 USD (1 USD = 0.5 XRP)
-    INR: { midRate: 166, xrpSize: 80 },       // 1 XRP = 166 INR (1 USD ≈ 83 INR)
-    EUR: { midRate: 1.84, xrpSize: 80 },      // 1 XRP = 1.84 EUR (1 USD ≈ 0.92 EUR)
-    NGN: { midRate: 3100, xrpSize: 80 },      // 1 XRP = 3100 NGN (1 USD ≈ 1550 NGN)
+    USD: { midRate: 1.36, xrpSize: 80 },        // 1 XRP = 2 USD (1 USD = 0.5 XRP)
+    INR: { midRate: 125, xrpSize: 80 },       // 1 XRP = 166 INR (1 USD ≈ 83 INR)
+    EUR: { midRate: 1.17, xrpSize: 80 },      // 1 XRP = 1.84 EUR (1 USD ≈ 0.92 EUR)
+    NGN: { midRate: 1878, xrpSize: 80 },      // 1 XRP = 3100 NGN (1 USD ≈ 1550 NGN)
   };
 
   const SPREAD = 0.05; // 5% total spread (2.5% each side)
@@ -194,10 +194,10 @@ async function main() {
   console.log(`   AMMCreate fee: ${xrpl.dropsToXrp(ammFeeDrops)} XRP per pool`);
 
   const ammConfig = {
-    USD: { tokenAmount: '200', xrpAmount: 100 },   // 200 USD : 100 XRP → 2 USD/XRP
-    INR: { tokenAmount: '16600', xrpAmount: 100 },  // 16600 INR : 100 XRP → 166 INR/XRP
-    EUR: { tokenAmount: '184', xrpAmount: 100 },    // 184 EUR : 100 XRP → 1.84 EUR/XRP
-    NGN: { tokenAmount: '310000', xrpAmount: 100 }, // 310000 NGN : 100 XRP → 3100 NGN/XRP
+    USD: { tokenAmount: '136', xrpAmount: 100 },   // 200 USD : 100 XRP → 2 USD/XRP
+    INR: { tokenAmount: '12500', xrpAmount: 100 },  // 16600 INR : 100 XRP → 166 INR/XRP
+    EUR: { tokenAmount: '117', xrpAmount: 100 },    // 184 EUR : 100 XRP → 1.84 EUR/XRP
+    NGN: { tokenAmount: '187800', xrpAmount: 100 }, // 310000 NGN : 100 XRP → 3100 NGN/XRP
   };
 
   for (const [currency, cfg] of Object.entries(ammConfig)) {
