@@ -2,7 +2,7 @@
 // POST: create escrow  |  PUT: finish/claim escrow
 import { NextResponse } from 'next/server';
 import * as xrpl from 'xrpl';
-import { generateEscrowCode, createEscrow, reconstructFulfillment, finishEscrow } from '@/lib/xrpl-escrow';
+import { generateEscrowCode, codeToCondition, createEscrow, finishEscrow } from '@/lib/xrpl-escrow';
 import { supabase } from '@/lib/supabase';
 
 export async function POST(req) {
@@ -20,11 +20,12 @@ export async function POST(req) {
       senderSeed, dest, xrpAmount, codeData.conditionHex, cancelSeconds || 300
     );
 
+    // Only store non-secret routing data.
+    // preimage and fulfillment are NOT stored — they are re-derived from the code at claim time.
+    // condition_hex is the on-chain hash (public), stored here only to verify the code at claim.
     await supabase.from('escrow_codes').insert({
       human_code: codeData.humanCode,
-      preimage_hex: codeData.preimageHex,
       condition_hex: codeData.conditionHex,
-      fulfillment_hex: codeData.fulfillmentHex,
       owner_address: escrow.ownerAddress,
       escrow_sequence: escrow.sequence,
       amount: xrpAmount,
@@ -53,10 +54,15 @@ export async function PUT(req) {
       return NextResponse.json({ error: 'code and claimerSeed required' }, { status: 400 });
     }
 
+    // Normalize code (strip dashes, uppercase) and derive condition + fulfillment locally.
+    // The DB is never consulted for the preimage — it doesn't store it.
+    const normalizedCode = code.replace(/-/g, '').toUpperCase();
+    const { conditionHex: derivedCondition, fulfillmentHex } = codeToCondition(normalizedCode);
+
     const { data: escrowRecord, error: dbErr } = await supabase
       .from('escrow_codes')
-      .select('*')
-      .eq('human_code', code)
+      .select('id, owner_address, escrow_sequence, condition_hex, expires_at, amount, status')
+      .eq('human_code', normalizedCode)
       .eq('status', 'pending')
       .single();
 
@@ -64,19 +70,24 @@ export async function PUT(req) {
       return NextResponse.json({ error: 'Invalid or expired code' }, { status: 404 });
     }
 
+    // Cryptographic verification: condition derived from the code must match what was
+    // committed on-chain at escrow creation. This proves the code is correct, not just
+    // that a record exists in the DB.
+    if (derivedCondition !== escrowRecord.condition_hex) {
+      return NextResponse.json({ error: 'Code does not match escrow condition' }, { status: 403 });
+    }
+
     if (new Date() > new Date(escrowRecord.expires_at)) {
       await supabase.from('escrow_codes').update({ status: 'expired' }).eq('id', escrowRecord.id);
       return NextResponse.json({ error: 'Code has expired' }, { status: 410 });
     }
-
-    const fulfillment = reconstructFulfillment(escrowRecord.preimage_hex);
 
     const result = await finishEscrow(
       claimerSeed,
       escrowRecord.owner_address,
       escrowRecord.escrow_sequence,
       escrowRecord.condition_hex,
-      fulfillment
+      fulfillmentHex
     );
 
     const claimer = xrpl.Wallet.fromSeed(claimerSeed);

@@ -57,7 +57,7 @@ export default function SendCode() {
         <div className="text-center mb-6">
           <div className="text-4xl mb-2">🔑</div>
           <h2 className="text-xl font-bold text-gray-900">Share This Code</h2>
-          <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-500 mt-1">
             Recipient enters this at <span className="font-mono text-brand-600">/claim</span>
           </p>
         </div>
@@ -97,7 +97,7 @@ export default function SendCode() {
     <div className="px-4 pt-6">
       <h2 className="text-xl font-bold text-gray-900 mb-2">Send via Code</h2>
       <p className="text-sm text-gray-500 mb-6">
-        Generate a 6-digit code to share with anyone. They claim the funds at the /claim page — no app install needed.
+        Generate a secure code to share with anyone. They claim the funds at the /claim page — no app install needed.
       </p>
 
       <div className="space-y-4">
