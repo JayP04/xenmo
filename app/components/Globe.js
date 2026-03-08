@@ -282,7 +282,7 @@ export default function Globe({ onTransfer }) {
   }, [initGlobe]);
 
   return (
-    <div ref={containerRef} className="absolute inset-0 z-0">
+    <div ref={containerRef} className="w-full h-full">
       <canvas ref={canvasRef} className="w-full h-full block" style={{ touchAction: 'none' }} />
     </div>
   );
