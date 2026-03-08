@@ -3,7 +3,8 @@
 @tailwind utilities;
 
 body {
-  background: #f8f7f4;
+  background: #161618;
+  color: #F5F5F7;
   min-height: 100dvh;
 }
 
@@ -11,3 +12,71 @@ body {
 * {
   -webkit-tap-highlight-color: transparent;
 }
+
+/* Globe landing page animations */
+@keyframes fade-in-out {
+  0% { opacity: 0; transform: translateY(8px); }
+  15% { opacity: 1; transform: translateY(0); }
+  85% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-8px); }
+}
+
+@keyframes twinkle {
+  0% { opacity: 0.1; transform: scale(0.8); }
+  100% { opacity: var(--tw-opacity, 0.5); transform: scale(1.2); }
+}
+
+@keyframes slide-up {
+  0% { opacity: 0; transform: translateY(16px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-out {
+  animation: fade-in-out 8s ease-in-out forwards;
+}
+
+.animate-twinkle {
+  animation: twinkle var(--tw-dur, 3s) ease-in-out infinite alternate;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.35s ease-out forwards;
+}
+
+/* Solid card surfaces — no blur, no glass */
+.card {
+  background: #1C1C1E;
+  border: 1px solid #2C2C2E;
+}
+
+.card-elevated {
+  background: #2C2C2E;
+  border: 1px solid #3A3A3C;
+}
+
+/* Input styling */
+.input-field {
+  background: #1C1C1E;
+  border: 1px solid #3A3A3C;
+  color: #F5F5F7;
+  transition: border-color 0.2s;
+}
+.input-field:focus {
+  border-color: #0A84FF;
+  outline: none;
+}
+.input-field::placeholder {
+  color: #636366;
+}
+
+/* Select dropdown */
+select option {
+  background: #1C1C1E;
+  color: #F5F5F7;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #3A3A3C; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #48484A; }

@@ -3,6 +3,9 @@
 import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useWallet } from '../components/WalletProvider';
+import dynamic from 'next/dynamic';
+
+const TransferGlobe = dynamic(() => import('../components/TransferGlobe'), { ssr: false });
 
 const CURRENCY_SYMBOLS = { USD: '$', INR: '₹', EUR: '€', NGN: '₦' };
 
@@ -21,12 +24,13 @@ function SendInner() {
   const [receipt, setReceipt] = useState(null);
   const [error, setError] = useState('');
   const [lookingUp, setLookingUp] = useState(false);
+  const [showGlobe, setShowGlobe] = useState(false);
+  const [globeDone, setGlobeDone] = useState(false);
 
   // Resolve @username to wallet address
   const resolveRecipient = async () => {
     const value = dest.trim();
     if (!value) return;
-    // If it looks like a username (not starting with r), look it up
     if (!value.startsWith('r')) {
       const username = value.replace(/^@/, '');
       setLookingUp(true);
@@ -62,6 +66,8 @@ function SendInner() {
 
   const handleSend = async () => {
     setSending(true);
+    setShowGlobe(true);
+    setGlobeDone(false);
     setError('');
     try {
       const res = await fetch('/api/payment', {
@@ -78,51 +84,72 @@ function SendInner() {
       });
       const data = await res.json();
       if (data.success) setReceipt(data);
-      else setError(data.error);
-    } catch (e) { setError('Payment failed'); }
+      else { setError(data.error); setShowGlobe(false); }
+    } catch (e) { setError('Payment failed'); setShowGlobe(false); }
     setSending(false);
   };
 
   if (!wallet) { router.push('/'); return null; }
 
-  // Receipt screen
-  if (receipt) {
+  // Globe animation screen (shows during/after payment)
+  if (showGlobe && !globeDone) {
     return (
-      <div className="px-4 pt-6">
+      <div className="fixed inset-0 z-40 flex flex-col items-center justify-center" style={{ background: '#161618' }}>
+        <div className="w-full h-[60vh]">
+          <TransferGlobe
+            fromCurrency={fromCurrency}
+            toCurrency={toCurrency}
+            onComplete={() => setTimeout(() => setGlobeDone(true), 1200)}
+          />
+        </div>
+        <div className="text-center mt-4 animate-slide-up">
+          <p className="text-[#8E8E93] text-sm mb-1">Sending money via XRPL</p>
+          <p className="text-[#F5F5F7] text-2xl font-bold">{amount} {fromCurrency}</p>
+          <p className="text-[#636366] text-xs mt-2">Settlement in ~3 seconds</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Receipt screen
+  if (receipt && globeDone) {
+    return (
+      <div className="px-4 pt-6 animate-slide-up">
         <div className="text-center mb-6">
           <div className="text-5xl mb-3">✅</div>
-          <h2 className="text-xl font-bold text-gray-900">Payment Sent!</h2>
+          <h2 className="text-xl font-bold text-[#F5F5F7]">Payment Sent!</h2>
         </div>
-        <div className="bg-white rounded-2xl p-5 shadow-sm space-y-3">
+        <div className="card rounded-2xl p-5 space-y-3">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">You sent</span>
-            <span className="font-semibold">{receipt.amountSent} {receipt.currencySent}</span>
+            <span className="text-[#8E8E93]">You sent</span>
+            <span className="font-semibold text-[#F5F5F7]">{receipt.amountSent} {receipt.currencySent}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">They received</span>
-            <span className="font-semibold text-green-600">{receipt.amountReceived} {receipt.currencyReceived}</span>
+            <span className="text-[#8E8E93]">They received</span>
+            <span className="font-semibold text-[#30D158]">{receipt.amountReceived} {receipt.currencyReceived}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">Rate</span>
-            <span>1 {receipt.currencySent} = {receipt.effectiveRate} {receipt.currencyReceived}</span>
+            <span className="text-[#8E8E93]">Rate</span>
+            <span className="text-[#F5F5F7]">1 {receipt.currencySent} = {receipt.effectiveRate} {receipt.currencyReceived}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">Fee</span>
-            <span className="text-green-600">{receipt.fee}</span>
+            <span className="text-[#8E8E93]">Fee</span>
+            <span className="text-[#30D158]">{receipt.fee}</span>
           </div>
-          <hr />
-          <a
-            href={receipt.explorerUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block text-center text-brand-600 text-sm font-medium"
-          >
-            View on XRPL Explorer →
-          </a>
+          <div className="border-t border-[#2C2C2E] pt-3">
+            <a
+              href={receipt.explorerUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block text-center text-[#0A84FF] text-sm font-medium"
+            >
+              View on XRPL Explorer →
+            </a>
+          </div>
         </div>
         <button
           onClick={() => router.push('/dashboard')}
-          className="w-full mt-6 py-3 bg-brand-600 text-white rounded-xl font-semibold"
+          className="w-full mt-6 py-3 rounded-xl font-semibold bg-[#0A84FF] text-white"
         >
           Done
         </button>
@@ -132,44 +159,44 @@ function SendInner() {
 
   return (
     <div className="px-4 pt-6">
-      <h2 className="text-xl font-bold text-gray-900 mb-6">Send Money</h2>
+      <h2 className="text-xl font-bold text-[#F5F5F7] mb-6">Send Money</h2>
 
       <div className="space-y-4">
         <div>
-          <label className="text-sm text-gray-500 mb-1 block">Recipient (@username or address)</label>
+          <label className="text-sm text-[#8E8E93] mb-1 block">Recipient (@username or address)</label>
           <input
             value={resolvedUser ? `@${resolvedUser.username}` : dest}
             onChange={(e) => { setDest(e.target.value); setResolvedUser(null); setRate(null); }}
             onBlur={resolveRecipient}
             onKeyDown={(e) => e.key === 'Enter' && resolveRecipient()}
             placeholder="@jayp or rXXXXXXXXX..."
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-brand-500"
+            className="w-full px-4 py-3 rounded-xl text-sm input-field"
           />
-          {lookingUp && <p className="text-xs text-gray-400 mt-1 animate-pulse">Looking up user...</p>}
+          {lookingUp && <p className="text-xs text-[#8E8E93] mt-1 animate-pulse">Looking up user...</p>}
           {resolvedUser && (
-            <p className="text-xs text-green-600 mt-1">
-              ✓ {resolvedUser.displayName || resolvedUser.username} — <span className="font-mono text-gray-400">{resolvedUser.address.slice(0, 12)}...</span>
+            <p className="text-xs text-[#30D158] mt-1">
+              ✓ {resolvedUser.displayName || resolvedUser.username} — <span className="font-mono text-[#8E8E93]">{resolvedUser.address.slice(0, 12)}...</span>
             </p>
           )}
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-sm text-gray-500 mb-1 block">You send</label>
+            <label className="text-sm text-[#8E8E93] mb-1 block">You send</label>
             <input
               type="number"
               value={amount}
               onChange={(e) => { setAmount(e.target.value); setRate(null); }}
               placeholder="50.00"
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-500"
+              className="w-full px-4 py-3 rounded-xl input-field"
             />
           </div>
           <div>
-            <label className="text-sm text-gray-500 mb-1 block">Currency</label>
+            <label className="text-sm text-[#8E8E93] mb-1 block">Currency</label>
             <select
               value={fromCurrency}
               onChange={(e) => { setFromCurrency(e.target.value); setRate(null); }}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white"
+              className="w-full px-4 py-3 rounded-xl input-field"
             >
               <option value="USD">USD</option>
               <option value="INR">INR</option>
@@ -180,11 +207,11 @@ function SendInner() {
         </div>
 
         <div>
-          <label className="text-sm text-gray-500 mb-1 block">They receive in</label>
+          <label className="text-sm text-[#8E8E93] mb-1 block">They receive in</label>
           <select
             value={toCurrency}
             onChange={(e) => { setToCurrency(e.target.value); setRate(null); }}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white"
+            className="w-full px-4 py-3 rounded-xl input-field"
           >
             <option value="USD">USD</option>
             <option value="INR">INR</option>
@@ -197,44 +224,45 @@ function SendInner() {
         {!rate && amount && dest && (
           <button
             onClick={checkRate}
-            className="w-full py-3 bg-gray-900 text-white rounded-xl font-semibold"
+            className="w-full py-3 rounded-xl font-semibold text-[#0A84FF] card"
           >
             Check Rate
           </button>
         )}
 
         {rate && (
-          <div className="bg-brand-50 rounded-2xl p-4 space-y-2">
+          <div className="card rounded-2xl p-4 space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">They receive (est.)</span>
-              <span className="font-bold text-lg text-brand-700">~{parseFloat(rate.estimatedReceive).toFixed(2)} {toCurrency}</span>
+              <span className="text-[#8E8E93]">They receive (est.)</span>
+              <span className="font-bold text-lg text-[#F5F5F7]">~{parseFloat(rate.estimatedReceive).toFixed(2)} {toCurrency}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Rate</span>
-              <span>1 {fromCurrency} = {rate.rate.toFixed(2)} {toCurrency}</span>
+              <span className="text-[#8E8E93]">Rate</span>
+              <span className="text-[#F5F5F7]">1 {fromCurrency} = {rate.rate.toFixed(2)} {toCurrency}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">RemitX fee</span>
-              <span className="font-medium">{rate.fee}</span>
+              <span className="text-[#8E8E93]">RemitX fee</span>
+              <span className="font-medium text-[#30D158]">{rate.fee}</span>
             </div>
-            <hr className="border-brand-200" />
-            <p className="text-xs text-gray-500 font-medium">Fees to send {amount} {fromCurrency}:</p>
-            <div className="text-xs space-y-1">
-              <div className="flex justify-between"><span>Western Union</span><span className="text-red-500">~${rate.competitors.westernUnion.total} in fees</span></div>
-              <div className="flex justify-between"><span>Wise</span><span className="text-orange-500">~${rate.competitors.wise.total} in fees</span></div>
-              <div className="flex justify-between"><span>Bank Wire</span><span className="text-red-500">~${rate.competitors.bankWire.total} in fees</span></div>
-              <div className="flex justify-between font-semibold"><span>RemitX</span><span className="text-green-600">{CURRENCY_SYMBOLS[fromCurrency]}{rate.competitors.remitx.total} in fees</span></div>
+            <div className="border-t border-[#2C2C2E] pt-2 mt-2">
+              <p className="text-xs text-[#8E8E93] font-medium mb-1">Fees to send {amount} {fromCurrency}:</p>
+              <div className="text-xs space-y-1">
+                <div className="flex justify-between text-[#8E8E93]"><span>Western Union</span><span className="text-[#FF453A]">~${rate.competitors.westernUnion.total} in fees</span></div>
+                <div className="flex justify-between text-[#8E8E93]"><span>Wise</span><span className="text-[#FF9F0A]">~${rate.competitors.wise.total} in fees</span></div>
+                <div className="flex justify-between text-[#8E8E93]"><span>Bank Wire</span><span className="text-[#FF453A]">~${rate.competitors.bankWire.total} in fees</span></div>
+                <div className="flex justify-between font-semibold text-[#F5F5F7]"><span>RemitX</span><span className="text-[#30D158]">{CURRENCY_SYMBOLS[fromCurrency]}{rate.competitors.remitx.total} in fees</span></div>
+              </div>
             </div>
           </div>
         )}
 
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error && <p className="text-[#FF453A] text-sm">{error}</p>}
 
         {rate && (
           <button
             onClick={handleSend}
             disabled={sending}
-            className="w-full py-4 bg-brand-600 text-white rounded-2xl font-semibold disabled:opacity-50"
+            className="w-full py-4 rounded-2xl font-semibold disabled:opacity-50 bg-[#0A84FF] text-white"
           >
             {sending ? 'Sending...' : `Send ${amount} ${fromCurrency}`}
           </button>
@@ -246,7 +274,7 @@ function SendInner() {
 
 export default function Send() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center h-screen text-gray-400">Loading...</div>}>
+    <Suspense fallback={<div className="flex items-center justify-center h-screen text-[#8E8E93]">Loading...</div>}>
       <SendInner />
     </Suspense>
   );

@@ -176,29 +176,29 @@ export default function Request() {
 
   return (
     <div className="px-4 pt-6 pb-24">
-      <h2 className="text-xl font-bold text-gray-900 mb-4">Requests</h2>
+      <h2 className="text-xl font-bold text-[#F5F5F7] mb-4">Requests</h2>
 
       <div className="flex gap-2 mb-6">
         <button
           onClick={() => setTab('claims')}
-          className={`flex-1 py-2 rounded-lg text-sm font-medium relative ${tab === 'claims' ? 'bg-brand-600 text-white' : 'bg-gray-100 text-gray-600'}`}
+          className={`flex-1 py-2 rounded-lg text-sm font-medium relative transition-colors ${tab === 'claims' ? 'bg-[#0A84FF] text-white' : 'text-[#8E8E93] card'}`}
         >
           Claims
           {claimsBadge > 0 && (
-            <span className={`absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center ${tab === 'claims' ? 'bg-white text-brand-600' : 'bg-brand-600 text-white'}`}>
+            <span className={`absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center ${tab === 'claims' ? 'bg-white text-[#0A84FF]' : 'bg-[#0A84FF] text-white'}`}>
               {claimsBadge}
             </span>
           )}
         </button>
         <button
           onClick={() => setTab('incoming')}
-          className={`flex-1 py-2 rounded-lg text-sm font-medium ${tab === 'incoming' ? 'bg-brand-600 text-white' : 'bg-gray-100 text-gray-600'}`}
+          className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${tab === 'incoming' ? 'bg-[#0A84FF] text-white' : 'text-[#8E8E93] card'}`}
         >
           Incoming ({incoming.length})
         </button>
         <button
           onClick={() => setTab('create')}
-          className={`flex-1 py-2 rounded-lg text-sm font-medium ${tab === 'create' ? 'bg-brand-600 text-white' : 'bg-gray-100 text-gray-600'}`}
+          className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${tab === 'create' ? 'bg-[#0A84FF] text-white' : 'text-[#8E8E93] card'}`}
         >
           Request
         </button>
@@ -210,39 +210,39 @@ export default function Request() {
 
           {/* Claim success banner */}
           {claimSuccess && (
-            <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+            <div className="card rounded-xl p-4" style={{ borderColor: '#30D158' }}>
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-lg">🎉</span>
-                <span className="font-semibold text-green-700">{claimSuccess.amount} XRP claimed!</span>
+                <span className="font-semibold text-[#30D158]">{claimSuccess.amount} XRP claimed!</span>
               </div>
               <a
                 href={claimSuccess.explorerUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-brand-600 font-medium"
+                className="text-xs text-[#0A84FF] font-medium"
               >
                 View on XRPL Explorer →
               </a>
-              <button onClick={() => setClaimSuccess(null)} className="block text-xs text-gray-400 mt-1">Dismiss</button>
+              <button onClick={() => setClaimSuccess(null)} className="block text-xs text-[#8E8E93] mt-1">Dismiss</button>
             </div>
           )}
 
           {/* ── Always-visible: Claim by Code ── */}
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <p className="text-sm font-semibold text-gray-900 mb-1">Claim by Code</p>
-            <p className="text-xs text-gray-400 mb-3">Enter a 6-digit code to receive funds.</p>
+          <div className="card rounded-xl p-4">
+            <p className="text-sm font-semibold text-[#F5F5F7] mb-1">Claim by Code</p>
+            <p className="text-xs text-[#8E8E93] mb-3">Enter a 6-digit code to receive funds.</p>
             <input
               value={directCode}
               onChange={(e) => setDirectCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
               placeholder="000000"
               maxLength={6}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg text-center text-2xl font-mono tracking-[0.3em] focus:outline-none focus:border-brand-500 mb-2"
+              className="w-full px-4 py-3 rounded-lg text-center text-2xl font-mono tracking-[0.3em] input-field mb-2"
             />
-            {directClaimError && <p className="text-xs text-red-500 mb-2">{directClaimError}</p>}
+            {directClaimError && <p className="text-xs text-[#FF453A] mb-2">{directClaimError}</p>}
             <button
               onClick={handleDirectClaim}
               disabled={directClaiming || directCode.length !== 6}
-              className="w-full py-2.5 bg-brand-600 text-white rounded-lg text-sm font-semibold disabled:opacity-50"
+              className="w-full py-2.5 rounded-lg text-sm font-semibold disabled:opacity-50 bg-[#0A84FF] text-white"
             >
               {directClaiming ? 'Claiming...' : 'Claim'}
             </button>
@@ -250,7 +250,7 @@ export default function Request() {
 
           {/* ── Pending escrows addressed to this user ── */}
           {pendingEscrows.length > 0 && (
-            <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">Pending for you</p>
+            <p className="text-xs text-[#8E8E93] font-semibold uppercase tracking-wide">Pending for you</p>
           )}
           {pendingEscrows.map((escrow) => {
             const expired = new Date() > new Date(escrow.expiresAt);
@@ -260,26 +260,26 @@ export default function Request() {
             const secs = timeLeft % 60;
 
             return (
-              <div key={escrow.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+              <div key={escrow.id} className="card rounded-xl p-4">
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">
-                      {escrow.isSplit ? 'Split' : 'Code send'} from <span className="text-brand-600">@{escrow.senderUsername}</span>
+                    <p className="text-sm font-semibold text-[#F5F5F7]">
+                      {escrow.isSplit ? 'Split' : 'Code send'} from <span className="text-[#0A84FF]">@{escrow.senderUsername}</span>
                     </p>
-                    <p className="text-xs text-gray-400 mt-0.5">
+                    <p className="text-xs text-[#8E8E93] mt-0.5">
                       {expired
-                        ? <span className="text-red-500">Expired — funds returned to sender</span>
-                        : <>Expires in <span className="font-mono font-semibold text-brand-600">{mins}:{secs.toString().padStart(2, '0')}</span></>
+                        ? <span className="text-[#FF453A]">Expired — funds returned to sender</span>
+                        : <>Expires in <span className="font-mono font-semibold text-[#F5F5F7]">{mins}:{secs.toString().padStart(2, '0')}</span></>
                       }
                     </p>
                   </div>
-                  <p className="font-bold text-lg text-gray-900">{escrow.amount} <span className="text-sm text-gray-400">XRP</span></p>
+                  <p className="font-bold text-lg text-[#F5F5F7]">{escrow.amount} <span className="text-sm text-[#8E8E93]">XRP</span></p>
                 </div>
 
                 {!isClaiming && !expired && (
                   <button
                     onClick={() => { setClaimingId(escrow.id); setClaimCode(''); setClaimError(''); }}
-                    className="w-full py-2.5 bg-brand-600 text-white rounded-lg text-sm font-semibold"
+                    className="w-full py-2.5 rounded-lg text-sm font-semibold bg-[#0A84FF] text-white"
                   >
                     Claim
                   </button>
@@ -287,27 +287,27 @@ export default function Request() {
 
                 {isClaiming && (
                   <div className="mt-2 space-y-2">
-                    <p className="text-xs text-gray-500">Enter the 6-digit code from the sender:</p>
+                    <p className="text-xs text-[#8E8E93]">Enter the 6-digit code from the sender:</p>
                     <input
                       value={claimCode}
                       onChange={(e) => setClaimCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                       placeholder="000000"
                       maxLength={6}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-lg text-center text-2xl font-mono tracking-[0.3em] focus:outline-none focus:border-brand-500"
+                      className="w-full px-4 py-3 rounded-lg text-center text-2xl font-mono tracking-[0.3em] input-field"
                       autoFocus
                     />
-                    {claimError && <p className="text-xs text-red-500">{claimError}</p>}
+                    {claimError && <p className="text-xs text-[#FF453A]">{claimError}</p>}
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleClaim(escrow)}
                         disabled={sending || claimCode.length !== 6}
-                        className="flex-1 py-2.5 bg-green-500 text-white rounded-lg text-sm font-semibold disabled:opacity-50"
+                        className="flex-1 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-50 bg-[#30D158] text-white"
                       >
                         {sending ? 'Claiming...' : 'Confirm & Claim'}
                       </button>
                       <button
                         onClick={() => { setClaimingId(null); setClaimCode(''); setClaimError(''); }}
-                        className="py-2.5 px-4 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium"
+                        className="py-2.5 px-4 rounded-lg text-sm font-medium text-[#8E8E93] card"
                       >
                         Cancel
                       </button>
@@ -324,25 +324,25 @@ export default function Request() {
       {tab === 'incoming' && (
         <div className="space-y-3">
           {incoming.length === 0 && (
-            <p className="text-center text-gray-400 py-8">No pending requests</p>
+            <p className="text-center text-[#8E8E93] py-8">No pending requests</p>
           )}
           {incoming.map((req) => (
-            <div key={req.id} className="bg-white rounded-xl p-4 shadow-sm">
+            <div key={req.id} className="card rounded-xl p-4">
               <div className="flex justify-between items-center mb-2">
-                <p className="text-sm font-mono text-gray-500">{req.fromAddress.slice(0, 12)}...</p>
-                <p className="font-bold text-gray-900">{req.amount} {req.currency}</p>
+                <p className="text-sm font-mono text-[#8E8E93]">{req.fromAddress.slice(0, 12)}...</p>
+                <p className="font-bold text-[#F5F5F7]">{req.amount} {req.currency}</p>
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => approveRequest(req)}
                   disabled={sending}
-                  className="flex-1 py-2 bg-green-500 text-white rounded-lg text-sm font-semibold disabled:opacity-50"
+                  className="flex-1 py-2 rounded-lg text-sm font-semibold disabled:opacity-50 bg-[#30D158] text-white"
                 >
                   Approve & Pay
                 </button>
                 <button
                   onClick={() => declineRequest(req)}
-                  className="flex-1 py-2 bg-gray-200 text-gray-600 rounded-lg text-sm font-semibold"
+                  className="flex-1 py-2 rounded-lg text-sm font-semibold text-[#8E8E93] card"
                 >
                   Decline
                 </button>
@@ -356,12 +356,12 @@ export default function Request() {
       {tab === 'create' && (
         <div className="space-y-4">
           <div>
-            <label className="text-sm text-gray-500 mb-1 block">Request from (their address)</label>
+            <label className="text-sm text-[#8E8E93] mb-1 block">Request from (their address)</label>
             <input
               value={toAddress}
               onChange={(e) => setToAddress(e.target.value)}
               placeholder="rXXXXXXXXX..."
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl font-mono text-sm focus:outline-none focus:border-brand-500"
+              className="w-full px-4 py-3 rounded-xl font-mono text-sm input-field"
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -370,12 +370,12 @@ export default function Request() {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="100.00"
-              className="px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-500"
+              className="px-4 py-3 rounded-xl input-field"
             />
             <select
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
-              className="px-4 py-3 border border-gray-200 rounded-xl bg-white"
+              className="px-4 py-3 rounded-xl input-field"
             >
               <option value="USD">USD</option>
               <option value="INR">INR</option>
@@ -383,11 +383,11 @@ export default function Request() {
               <option value="NGN">NGN</option>
             </select>
           </div>
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+          {error && <p className="text-[#FF453A] text-sm">{error}</p>}
           <button
             onClick={createRequest}
             disabled={sending || !toAddress || !amount}
-            className="w-full py-3 bg-brand-600 text-white rounded-xl font-semibold disabled:opacity-50"
+            className="w-full py-3 rounded-xl font-semibold disabled:opacity-50 bg-[#0A84FF] text-white"
           >
             {sending ? 'Sending...' : 'Send Request'}
           </button>

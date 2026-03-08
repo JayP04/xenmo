@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWallet } from '../components/WalletProvider';
+import dynamic from 'next/dynamic';
+
+const TransferGlobe = dynamic(() => import('../components/TransferGlobe'), { ssr: false });
 
 export default function History() {
   const { wallet } = useWallet();
@@ -29,16 +32,16 @@ export default function History() {
 
   return (
     <div className="px-4 pt-6">
-      <h2 className="text-xl font-bold text-gray-900 mb-4">Transaction History</h2>
+      <h2 className="text-xl font-bold text-[#F5F5F7] mb-4">Transaction History</h2>
 
-      {loading && <p className="text-center text-gray-400 py-8 animate-pulse">Loading...</p>}
+      {loading && <p className="text-center text-[#8E8E93] py-8 animate-pulse">Loading...</p>}
 
       {!loading && transactions.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-400 mb-2">No transactions yet</p>
+          <p className="text-[#8E8E93] mb-2">No transactions yet</p>
           <button
             onClick={() => router.push('/send')}
-            className="text-brand-600 text-sm font-medium"
+            className="text-[#0A84FF] text-sm font-medium"
           >
             Send your first payment →
           </button>
@@ -50,21 +53,23 @@ export default function History() {
           const isSender = tx.sender === wallet.address;
           const isExpanded = expanded === tx.txHash;
 
-          // Better labels for escrow transactions
           const isEscrow = tx.type === 'EscrowCreate' || tx.type === 'EscrowFinish';
-          let label, icon, colorClass;
+          let label, icon, colorClass, accentColor;
           if (tx.type === 'EscrowCreate') {
             label = isSender ? 'Split Locked' : 'Split Pending';
             icon = '🔒';
-            colorClass = 'text-orange-500';
+            colorClass = 'text-[#FF9F0A]';
+            accentColor = '#FF9F0A';
           } else if (tx.type === 'EscrowFinish') {
             label = isSender ? 'Split Released' : 'Split Claimed';
             icon = isSender ? '↗' : '↙';
-            colorClass = isSender ? 'text-red-500' : 'text-green-600';
+            colorClass = isSender ? 'text-[#FF453A]' : 'text-[#30D158]';
+            accentColor = isSender ? '#FF453A' : '#30D158';
           } else {
             label = isSender ? 'Sent' : 'Received';
             icon = isSender ? '↗' : '↙';
-            colorClass = isSender ? 'text-red-500' : 'text-green-600';
+            colorClass = isSender ? 'text-[#FF453A]' : 'text-[#30D158]';
+            accentColor = isSender ? '#FF453A' : '#30D158';
           }
           const displayAmount = isEscrow
             ? tx.amountReceived
@@ -79,7 +84,7 @@ export default function History() {
           return (
             <div
               key={tx.txHash}
-              className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100"
+              className="card rounded-xl overflow-hidden"
             >
               {/* Summary row */}
               <button
@@ -92,10 +97,10 @@ export default function History() {
                       {icon}
                     </span>
                     <div>
-                      <p className="text-sm font-semibold text-gray-900">
+                      <p className="text-sm font-semibold text-[#F5F5F7]">
                         {label} {displayCurrency}
                       </p>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-[#8E8E93]">
                         {new Date(tx.createdAt).toLocaleDateString()} {new Date(tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
@@ -108,35 +113,46 @@ export default function History() {
                 </div>
               </button>
 
-              {/* Expanded details */}
+              {/* Expanded details with globe */}
               {isExpanded && (
-                <div className="px-4 pb-4 border-t border-gray-100 pt-3 space-y-2">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-400">Amount sent</span>
-                    <span className="font-medium">{parseFloat(tx.amountSent).toFixed(2)} {tx.currencySent}</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-400">Amount received</span>
-                    <span className="font-medium text-green-600">{parseFloat(tx.amountReceived).toFixed(2)} {tx.currencyReceived}</span>
-                  </div>
-                  {tx.currencySent !== tx.currencyReceived && (
-                    <div className="flex justify-between text-xs">
-                      <span className="text-gray-400">Exchange rate</span>
-                      <span>1 {tx.currencySent} = {tx.effectiveRate} {tx.currencyReceived}</span>
+                <div className="animate-slide-up">
+                  {/* Globe animation for cross-currency transfers */}
+                  {tx.currencySent && tx.currencyReceived && tx.currencySent !== tx.currencyReceived && (
+                    <div className="h-48 w-full bg-[#161618]">
+                      <TransferGlobe
+                        fromCurrency={tx.currencySent}
+                        toCurrency={tx.currencyReceived}
+                      />
                     </div>
                   )}
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-400">Fee</span>
-                    <span className="text-green-600">{tx.fee || '$0.00'}</span>
+                  <div className="px-4 pb-4 pt-3 space-y-2" style={{ borderTop: '1px solid #2C2C2E' }}>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-[#8E8E93]">Amount sent</span>
+                      <span className="font-medium text-[#F5F5F7]">{parseFloat(tx.amountSent).toFixed(2)} {tx.currencySent}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-[#8E8E93]">Amount received</span>
+                      <span className="font-medium text-[#30D158]">{parseFloat(tx.amountReceived).toFixed(2)} {tx.currencyReceived}</span>
+                    </div>
+                    {tx.currencySent !== tx.currencyReceived && (
+                      <div className="flex justify-between text-xs">
+                        <span className="text-[#8E8E93]">Exchange rate</span>
+                        <span className="text-[#F5F5F7]">1 {tx.currencySent} = {tx.effectiveRate} {tx.currencyReceived}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-xs">
+                      <span className="text-[#8E8E93]">Fee</span>
+                      <span className="text-[#30D158]">{tx.fee || '$0.00'}</span>
+                    </div>
+                    <a
+                      href={tx.explorerUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block text-center text-[#0A84FF] text-xs font-medium pt-2"
+                    >
+                      View on XRPL Explorer →
+                    </a>
                   </div>
-                  <a
-                    href={tx.explorerUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block text-center text-brand-600 text-xs font-medium pt-2"
-                  >
-                    View on XRPL Explorer →
-                  </a>
                 </div>
               )}
             </div>

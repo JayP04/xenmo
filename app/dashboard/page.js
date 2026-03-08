@@ -37,34 +37,34 @@ export default function Dashboard() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (loading || !wallet) return <div className="flex items-center justify-center h-screen text-gray-400">Loading...</div>;
+  if (loading || !wallet) return <div className="flex items-center justify-center h-screen text-[#8E8E93]">Loading...</div>;
 
   return (
     <div className="px-4 pt-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Remit<span className="text-brand-600">X</span>
+          <h1 className="text-2xl font-bold text-[#F5F5F7]">
+            Remit<span className="text-[#0A84FF]">X</span>
           </h1>
         </div>
-        <button onClick={logout} className="text-xs text-gray-400 hover:text-gray-600">
+        <button onClick={logout} className="text-xs text-[#8E8E93]">
           Sign Out
         </button>
       </div>
 
       {/* Wallet address */}
-      <div className="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-gray-100">
+      <div className="card rounded-2xl p-4 mb-4">
         {wallet.username && (
-          <p className="text-sm font-semibold text-brand-600 mb-1">@{wallet.username}</p>
+          <p className="text-sm font-semibold text-[#0A84FF] mb-1">@{wallet.username}</p>
         )}
-        <p className="text-xs text-gray-400 mb-1">Your wallet</p>
+        <p className="text-xs text-[#8E8E93] mb-1">Your wallet</p>
         <div className="flex items-center gap-2">
-          <code className="text-xs text-gray-600 font-mono flex-1 truncate">{wallet.address}</code>
-          <button onClick={copyAddress} className="text-xs text-brand-600 font-medium shrink-0">
+          <code className="text-xs text-[#8E8E93] font-mono flex-1 truncate">{wallet.address}</code>
+          <button onClick={copyAddress} className="text-xs text-[#0A84FF] font-medium shrink-0">
             {copied ? '✓ Copied' : 'Copy'}
           </button>
-          <button onClick={() => setShowQR(!showQR)} className="text-xs text-brand-600 font-medium shrink-0">
+          <button onClick={() => setShowQR(!showQR)} className="text-xs text-[#0A84FF] font-medium shrink-0">
             {showQR ? 'Hide' : 'QR'}
           </button>
         </div>
@@ -81,21 +81,21 @@ export default function Dashboard() {
           Object.entries(balances)
             .filter(([currency]) => currency !== 'XRP')
             .map(([currency, amount]) => (
-              <div key={currency} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-center justify-between">
+              <div key={currency} className="card rounded-xl p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{CURRENCY_FLAGS[currency] || '💰'}</span>
                   <div>
-                    <p className="font-semibold text-gray-900">{currency}</p>
-                    <p className="text-xs text-gray-400">Balance</p>
+                    <p className="font-semibold text-[#F5F5F7]">{currency}</p>
+                    <p className="text-xs text-[#8E8E93]">Balance</p>
                   </div>
                 </div>
-                <p className="font-bold text-gray-900 text-lg">
+                <p className="font-bold text-[#F5F5F7] text-lg">
                   {CURRENCY_SYMBOLS[currency]}{parseFloat(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </div>
             ))
         ) : (
-          <div className="text-center text-gray-400 py-8 animate-pulse">Loading balances...</div>
+          <div className="text-center text-[#8E8E93] py-8 animate-pulse">Loading balances...</div>
         )}
       </div>
 
@@ -103,31 +103,31 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 gap-3 mb-6">
         <button
           onClick={() => router.push('/send')}
-          className="bg-brand-600 text-white py-4 rounded-2xl font-semibold active:bg-brand-700"
+          className="py-4 rounded-2xl font-semibold bg-[#0A84FF] text-white active:opacity-80 transition-opacity"
         >
           ↗ Send
         </button>
         <button
           onClick={() => router.push('/scan')}
-          className="bg-gray-900 text-white py-4 rounded-2xl font-semibold active:bg-gray-800"
+          className="py-4 rounded-2xl font-semibold text-[#F5F5F7] active:opacity-80 transition-opacity card"
         >
           ⊞ Scan QR
         </button>
         <button
           onClick={() => router.push('/split')}
-          className="bg-brand-600 text-white py-4 rounded-2xl font-semibold active:bg-brand-700"
+          className="py-4 rounded-2xl font-semibold text-[#F5F5F7] active:opacity-80 transition-opacity card"
         >
           ✂ Split
         </button>
         <button
           onClick={() => router.push('/send-code')}
-          className="bg-white text-gray-700 py-4 rounded-2xl font-semibold border-2 border-gray-200 active:bg-gray-50"
+          className="py-4 rounded-2xl font-semibold text-[#F5F5F7] active:opacity-80 transition-opacity card"
         >
           🔑 Send Code
         </button>
         <button
           onClick={() => router.push('/request')}
-          className="bg-white text-gray-700 py-4 rounded-2xl font-semibold border-2 border-gray-200 active:bg-gray-50 col-span-2"
+          className="col-span-2 py-4 rounded-2xl font-semibold text-[#F5F5F7] active:opacity-80 transition-opacity card"
         >
           ↙ Request
         </button>
