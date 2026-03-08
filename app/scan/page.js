@@ -9,8 +9,16 @@ export default function Scan() {
   const router = useRouter();
   const [error, setError] = useState('');
   const [scanning, setScanning] = useState(false);
+  const [scannedAddress, setScannedAddress] = useState(null);
   const scannerRef = useRef(null);
   const containerRef = useRef(null);
+
+  // Navigate in a separate effect to avoid "Rendered more hooks" Next.js bug
+  useEffect(() => {
+    if (scannedAddress) {
+      router.push(`/send?to=${scannedAddress}`);
+    }
+  }, [scannedAddress, router]);
 
   useEffect(() => {
     if (!wallet) { router.push('/'); return; }
@@ -33,7 +41,7 @@ export default function Scan() {
             const address = decodedText.trim();
 
             if (address.startsWith('r') && address.length >= 25) {
-              router.push(`/send?to=${address}`);
+              setScannedAddress(address);
             } else {
               setError(`Invalid address: ${address}`);
               setScanning(false);

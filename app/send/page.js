@@ -1,6 +1,6 @@
 // app/send/page.js
 'use client';
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useWallet } from '../components/WalletProvider';
 import dynamic from 'next/dynamic';
@@ -10,9 +10,13 @@ const TransferGlobe = dynamic(() => import('../components/TransferGlobe'), { ssr
 const CURRENCY_SYMBOLS = { USD: '$', INR: '₹', EUR: '€', NGN: '₦' };
 
 function SendInner() {
-  const { wallet } = useWallet();
+  const { wallet, loading: walletLoading } = useWallet();
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (!walletLoading && !wallet) router.push('/');
+  }, [walletLoading, wallet, router]);
 
   const [dest, setDest] = useState(searchParams.get('to') || '');
   const [resolvedUser, setResolvedUser] = useState(null);
@@ -89,7 +93,7 @@ function SendInner() {
     setSending(false);
   };
 
-  if (!wallet) { router.push('/'); return null; }
+  if (!wallet) return <div className="flex items-center justify-center h-screen text-[#8E8E93]">Loading...</div>;
 
   // Globe animation screen (shows during/after payment)
   if (showGlobe && !globeDone) {

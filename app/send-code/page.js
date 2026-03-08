@@ -5,8 +5,12 @@ import { useRouter } from 'next/navigation';
 import { useWallet } from '../components/WalletProvider';
 
 export default function SendCode() {
-  const { wallet } = useWallet();
+  const { wallet, loading: walletLoading } = useWallet();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!walletLoading && !wallet) router.push('/');
+  }, [walletLoading, wallet, router]);
   const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState('USD');
   const [recipientUsername, setRecipientUsername] = useState('');
@@ -49,7 +53,7 @@ export default function SendCode() {
     setCreating(false);
   };
 
-  if (!wallet) { router.push('/'); return null; }
+  if (!wallet) return <div className="flex items-center justify-center h-screen text-[#8E8E93]">Loading...</div>;
 
   // Show code screen
   if (escrow) {

@@ -8,6 +8,10 @@ export default function Split() {
   const { wallet, loading } = useWallet();
   const router = useRouter();
 
+  useEffect(() => {
+    if (!loading && !wallet) router.push('/');
+  }, [loading, wallet, router]);
+
   const [totalAmount, setTotalAmount] = useState('');
   const [currency, setCurrency] = useState('USD');
   const [recipients, setRecipients] = useState([{ username: '', amount: '', resolved: null, error: '' }]);
@@ -99,7 +103,7 @@ export default function Split() {
     setSending(false);
   };
 
-  if (!wallet) { if (!loading) router.push('/'); return null; }
+  if (!wallet) return <div className="flex items-center justify-center h-screen text-[#8E8E93]">Loading...</div>;
 
   // Result screen
   if (result) {
