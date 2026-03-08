@@ -71,19 +71,27 @@ export async function POST(req) {
         cancelSeconds || 600 // 10 min default for splits
       );
 
-      await supabase.from('escrow_codes').insert({
+      const { error: insertErr } = await supabase.from('escrow_codes').insert({
         human_code: codeData.humanCode,
+        preimage_hex: '',
         condition_hex: codeData.conditionHex,
+        fulfillment_hex: '',
         owner_address: escrow.ownerAddress,
         destination_address: split.address,
         escrow_sequence: escrow.sequence,
         amount: split.amount,
+        status: 'pending',
         expires_at: new Date(escrow.expiresAt).toISOString(),
         tx_hash_create: escrow.hash,
         split_group_id: groupId,
         split_recipient_username: split.username,
         sender_username: senderUsername,
       });
+
+      if (insertErr) {
+        console.error('Split escrow DB insert failed:', insertErr);
+        throw new Error('Failed to save escrow code: ' + insertErr.message);
+      }
 
       results.push({
         username: split.username,

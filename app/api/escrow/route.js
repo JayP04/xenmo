@@ -1,5 +1,5 @@
 // app/api/escrow/route.js
-// POST: create escrow  |  PUT: finish/claim escrow
+// POST: create escrow  |  PUT: finish/claim escrow  |  GET: pending escrows for a user
 import { NextResponse } from 'next/server';
 import * as xrpl from 'xrpl';
 import { generateEscrowCode, codeToCondition, createEscrow, finishEscrow } from '@/lib/xrpl-escrow';
@@ -7,14 +7,39 @@ import { supabase } from '@/lib/supabase';
 
 export async function POST(req) {
   try {
-    const { senderSeed, destinationAddress, xrpAmount, cancelSeconds } = await req.json();
+    const { senderSeed, destinationAddress, recipientUsername, xrpAmount, cancelSeconds } = await req.json();
 
     if (!senderSeed || !xrpAmount) {
       return NextResponse.json({ error: 'senderSeed and xrpAmount required' }, { status: 400 });
     }
 
+    // Resolve sender info
+    const senderWallet = xrpl.Wallet.fromSeed(senderSeed);
+    const { data: senderUser } = await supabase
+      .from('users')
+      .select('username')
+      .eq('wallet_address', senderWallet.address)
+      .single();
+    const senderUsername = senderUser?.username || senderWallet.address.slice(0, 8);
+
+    // Resolve recipient if username provided
+    let dest = destinationAddress;
+    let resolvedRecipientUsername = null;
+    if (recipientUsername) {
+      const { data: recipientUser, error: userErr } = await supabase
+        .from('users')
+        .select('wallet_address, username')
+        .eq('username', recipientUsername.toLowerCase())
+        .single();
+      if (userErr || !recipientUser) {
+        return NextResponse.json({ error: `User @${recipientUsername} not found` }, { status: 404 });
+      }
+      dest = recipientUser.wallet_address;
+      resolvedRecipientUsername = recipientUser.username;
+    }
+    if (!dest) dest = senderWallet.address;
+
     const codeData = generateEscrowCode();
-    const dest = destinationAddress || xrpl.Wallet.fromSeed(senderSeed).address;
 
     const escrow = await createEscrow(
       senderSeed, dest, xrpAmount, codeData.conditionHex, cancelSeconds || 300
@@ -23,15 +48,26 @@ export async function POST(req) {
     // Only store non-secret routing data.
     // preimage and fulfillment are NOT stored — they are re-derived from the code at claim time.
     // condition_hex is the on-chain hash (public), stored here only to verify the code at claim.
-    await supabase.from('escrow_codes').insert({
+    const { error: insertErr } = await supabase.from('escrow_codes').insert({
       human_code: codeData.humanCode,
+      preimage_hex: '',
       condition_hex: codeData.conditionHex,
+      fulfillment_hex: '',
       owner_address: escrow.ownerAddress,
+      destination_address: resolvedRecipientUsername ? dest : null,
       escrow_sequence: escrow.sequence,
       amount: xrpAmount,
+      status: 'pending',
       expires_at: new Date(escrow.expiresAt).toISOString(),
       tx_hash_create: escrow.hash,
+      sender_username: senderUsername,
+      split_recipient_username: resolvedRecipientUsername,
     });
+
+    if (insertErr) {
+      console.error('Escrow DB insert failed:', insertErr);
+      return NextResponse.json({ success: false, error: 'Failed to save escrow code' }, { status: 500 });
+    }
 
     return NextResponse.json({
       success: true,
@@ -39,6 +75,7 @@ export async function POST(req) {
       expiresAt: escrow.expiresAt,
       amount: xrpAmount,
       txHash: escrow.hash,
+      recipientUsername: resolvedRecipientUsername,
     });
   } catch (err) {
     console.error('Escrow creation failed:', err);
@@ -104,6 +141,44 @@ export async function PUT(req) {
     });
   } catch (err) {
     console.error('Escrow finish failed:', err);
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+  }
+}
+
+export async function GET(req) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const address = searchParams.get('address');
+
+    if (!address) {
+      return NextResponse.json({ error: 'address required' }, { status: 400 });
+    }
+
+    // Fetch ALL pending escrow codes addressed to this user (both standalone and splits)
+    const { data: escrows, error } = await supabase
+      .from('escrow_codes')
+      .select('id, human_code, split_group_id, split_recipient_username, sender_username, amount, status, expires_at, created_at')
+      .eq('destination_address', address)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false })
+      .limit(30);
+
+    if (error) throw error;
+
+    return NextResponse.json({
+      success: true,
+      escrows: (escrows || []).map((e) => ({
+        id: e.id,
+        groupId: e.split_group_id,
+        senderUsername: e.sender_username,
+        amount: e.amount,
+        status: e.status,
+        expiresAt: e.expires_at,
+        createdAt: e.created_at,
+        isSplit: !!e.split_group_id,
+      })),
+    });
+  } catch (err) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }
