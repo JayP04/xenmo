@@ -7,9 +7,9 @@ import { useWallet } from '../components/WalletProvider';
 export default function Request() {
   const { wallet } = useWallet();
   const router = useRouter();
-  const [tab, setTab] = useState('splits'); // 'splits' | 'incoming' | 'create'
+  const [tab, setTab] = useState('claims'); // 'claims' | 'incoming' | 'create'
   const [requests, setRequests] = useState([]);
-  const [splits, setSplits] = useState([]);
+  const [pendingEscrows, setPendingEscrows] = useState([]);
   const [toAddress, setToAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState('USD');
@@ -21,6 +21,10 @@ export default function Request() {
   const [claimCode, setClaimCode] = useState('');
   const [claimError, setClaimError] = useState('');
   const [claimSuccess, setClaimSuccess] = useState(null); // { id, amount, explorerUrl }
+  // Standalone code claim (no escrow card needed)
+  const [directCode, setDirectCode] = useState('');
+  const [directClaimError, setDirectClaimError] = useState('');
+  const [directClaiming, setDirectClaiming] = useState(false);
 
   const fetchRequests = useCallback(async () => {
     if (!wallet) return;
@@ -34,9 +38,9 @@ export default function Request() {
   const fetchSplits = useCallback(async () => {
     if (!wallet) return;
     try {
-      const res = await fetch(`/api/split?address=${wallet.address}`);
+      const res = await fetch(`/api/escrow?address=${wallet.address}`);
       const data = await res.json();
-      if (data.success) setSplits(data.splits);
+      if (data.success) setPendingEscrows(data.escrows);
     } catch (e) { /* ignore */ }
   }, [wallet]);
 
@@ -110,22 +114,24 @@ export default function Request() {
     fetchRequests();
   };
 
-  const handleClaim = async (split) => {
+  const handleClaim = async (escrow) => {
     setClaimError('');
     setSending(true);
     try {
-      const res = await fetch('/api/split', {
+      // Use the appropriate API based on whether it's a split or standalone escrow
+      const apiUrl = escrow.isSplit ? '/api/split' : '/api/escrow';
+      const body = escrow.isSplit
+        ? { escrowId: escrow.id, code: claimCode, claimerSeed: wallet.seed }
+        : { code: claimCode, claimerSeed: wallet.seed };
+
+      const res = await fetch(apiUrl, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          escrowId: split.id,
-          code: claimCode,
-          claimerSeed: wallet.seed,
-        }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (data.success) {
-        setClaimSuccess({ id: split.id, amount: data.amount, explorerUrl: data.explorerUrl });
+        setClaimSuccess({ id: escrow.id, amount: data.amount, explorerUrl: data.explorerUrl });
         setClaimingId(null);
         setClaimCode('');
         fetchSplits();
@@ -138,13 +144,35 @@ export default function Request() {
     setSending(false);
   };
 
+  // Direct claim by code — no escrow card needed
+  const handleDirectClaim = async () => {
+    setDirectClaimError('');
+    setDirectClaiming(true);
+    try {
+      const res = await fetch('/api/escrow', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: directCode, claimerSeed: wallet.seed }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setClaimSuccess({ amount: data.amount, explorerUrl: data.explorerUrl });
+        setDirectCode('');
+        fetchSplits();
+      } else {
+        setDirectClaimError(data.error || 'Claim failed');
+      }
+    } catch (e) {
+      setDirectClaimError('Claim failed');
+    }
+    setDirectClaiming(false);
+  };
+
   if (!wallet) return null;
 
   const incoming = requests.filter((r) => r.toAddress === wallet.address && r.status === 'pending');
-  const pendingSplits = splits.filter((s) => s.status === 'pending');
-  const pastSplits = splits.filter((s) => s.status !== 'pending');
 
-  const splitsBadge = pendingSplits.length;
+  const claimsBadge = pendingEscrows.length;
 
   return (
     <div className="px-4 pt-6 pb-24">
@@ -152,13 +180,13 @@ export default function Request() {
 
       <div className="flex gap-2 mb-6">
         <button
-          onClick={() => setTab('splits')}
-          className={`flex-1 py-2 rounded-lg text-sm font-medium relative ${tab === 'splits' ? 'bg-brand-600 text-white' : 'bg-gray-100 text-gray-600'}`}
+          onClick={() => setTab('claims')}
+          className={`flex-1 py-2 rounded-lg text-sm font-medium relative ${tab === 'claims' ? 'bg-brand-600 text-white' : 'bg-gray-100 text-gray-600'}`}
         >
-          Splits
-          {splitsBadge > 0 && (
-            <span className={`absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center ${tab === 'splits' ? 'bg-white text-brand-600' : 'bg-brand-600 text-white'}`}>
-              {splitsBadge}
+          Claims
+          {claimsBadge > 0 && (
+            <span className={`absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center ${tab === 'claims' ? 'bg-white text-brand-600' : 'bg-brand-600 text-white'}`}>
+              {claimsBadge}
             </span>
           )}
         </button>
@@ -176,16 +204,13 @@ export default function Request() {
         </button>
       </div>
 
-      {/* ───── SPLITS TAB ───── */}
-      {tab === 'splits' && (
-        <div className="space-y-3">
-          {pendingSplits.length === 0 && pastSplits.length === 0 && (
-            <p className="text-center text-gray-400 py-8">No split payments yet</p>
-          )}
+      {/* ───── CLAIMS TAB ───── */}
+      {tab === 'claims' && (
+        <div className="space-y-4">
 
           {/* Claim success banner */}
           {claimSuccess && (
-            <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-2">
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-lg">🎉</span>
                 <span className="font-semibold text-green-700">{claimSuccess.amount} XRP claimed!</span>
@@ -202,23 +227,44 @@ export default function Request() {
             </div>
           )}
 
-          {/* Pending splits */}
-          {pendingSplits.length > 0 && (
-            <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">Pending</p>
+          {/* ── Always-visible: Claim by Code ── */}
+          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <p className="text-sm font-semibold text-gray-900 mb-1">Claim by Code</p>
+            <p className="text-xs text-gray-400 mb-3">Enter a 6-digit code to receive funds.</p>
+            <input
+              value={directCode}
+              onChange={(e) => setDirectCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              placeholder="000000"
+              maxLength={6}
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg text-center text-2xl font-mono tracking-[0.3em] focus:outline-none focus:border-brand-500 mb-2"
+            />
+            {directClaimError && <p className="text-xs text-red-500 mb-2">{directClaimError}</p>}
+            <button
+              onClick={handleDirectClaim}
+              disabled={directClaiming || directCode.length !== 6}
+              className="w-full py-2.5 bg-brand-600 text-white rounded-lg text-sm font-semibold disabled:opacity-50"
+            >
+              {directClaiming ? 'Claiming...' : 'Claim'}
+            </button>
+          </div>
+
+          {/* ── Pending escrows addressed to this user ── */}
+          {pendingEscrows.length > 0 && (
+            <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">Pending for you</p>
           )}
-          {pendingSplits.map((split) => {
-            const expired = new Date() > new Date(split.expiresAt);
-            const isClaiming = claimingId === split.id;
-            const timeLeft = Math.max(0, Math.floor((new Date(split.expiresAt) - Date.now()) / 1000));
+          {pendingEscrows.map((escrow) => {
+            const expired = new Date() > new Date(escrow.expiresAt);
+            const isClaiming = claimingId === escrow.id;
+            const timeLeft = Math.max(0, Math.floor((new Date(escrow.expiresAt) - Date.now()) / 1000));
             const mins = Math.floor(timeLeft / 60);
             const secs = timeLeft % 60;
 
             return (
-              <div key={split.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+              <div key={escrow.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <p className="text-sm font-semibold text-gray-900">
-                      Split from <span className="text-brand-600">@{split.senderUsername}</span>
+                      {escrow.isSplit ? 'Split' : 'Code send'} from <span className="text-brand-600">@{escrow.senderUsername}</span>
                     </p>
                     <p className="text-xs text-gray-400 mt-0.5">
                       {expired
@@ -227,12 +273,12 @@ export default function Request() {
                       }
                     </p>
                   </div>
-                  <p className="font-bold text-lg text-gray-900">{split.amount} <span className="text-sm text-gray-400">XRP</span></p>
+                  <p className="font-bold text-lg text-gray-900">{escrow.amount} <span className="text-sm text-gray-400">XRP</span></p>
                 </div>
 
                 {!isClaiming && !expired && (
                   <button
-                    onClick={() => { setClaimingId(split.id); setClaimCode(''); setClaimError(''); }}
+                    onClick={() => { setClaimingId(escrow.id); setClaimCode(''); setClaimError(''); }}
                     className="w-full py-2.5 bg-brand-600 text-white rounded-lg text-sm font-semibold"
                   >
                     Claim
@@ -253,7 +299,7 @@ export default function Request() {
                     {claimError && <p className="text-xs text-red-500">{claimError}</p>}
                     <div className="flex gap-2">
                       <button
-                        onClick={() => handleClaim(split)}
+                        onClick={() => handleClaim(escrow)}
                         disabled={sending || claimCode.length !== 6}
                         className="flex-1 py-2.5 bg-green-500 text-white rounded-lg text-sm font-semibold disabled:opacity-50"
                       >
@@ -271,26 +317,6 @@ export default function Request() {
               </div>
             );
           })}
-
-          {/* Past splits */}
-          {pastSplits.length > 0 && (
-            <>
-              <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mt-4">History</p>
-              {pastSplits.map((split) => (
-                <div key={split.id} className="bg-gray-50 rounded-xl p-4 opacity-70">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600">
-                        From <span className="font-medium">@{split.senderUsername}</span>
-                      </p>
-                      <p className="text-xs text-gray-400 capitalize">{split.status}</p>
-                    </div>
-                    <p className="font-semibold text-gray-600">{split.amount} XRP</p>
-                  </div>
-                </div>
-              ))}
-            </>
-          )}
         </div>
       )}
 

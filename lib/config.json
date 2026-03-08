@@ -3,6 +3,25 @@
   "explorerUrl": "https://testnet.xrpl.org",
   "issuers": {
     "USD": {
+      "address": "rKKnji3iiyzRcVHDvLi9jJYPJqSWRtqPPi",
+      "seed": "sEdVMVP1DBByPyp2trj161XkKoQLQDY"
+    },
+    "INR": {
+      "address": "raHiX7VEk9mCmb3a6UzzNxcUXBSRBPDVoq",
+      "seed": "sEd7MZRYHgPUceLCEzQZM9kzwCzK4tj"
+    },
+    "EUR": {
+      "address": "rHzzd7LnZt6uGKPvNy2XwgPabE3zCkMH8B",
+      "seed": "sEdS5SJTwtt6Xdoo1Pvx16VGem9otCh"
+    },
+    "NGN": {
+      "address": "rwLpFJygaboFYwzC1vESJ8aHrnYZbnzrvh",
+      "seed": "sEdT4jEcYG3iJEGb9KpAQhWDBWuJFyJ"
+    }
+  },
+  "lp": {
+    "address": "rwQ57tyrSQ36y4yAx1kd6xoGWXZtnhMfeN",
+    "seed": "sEdVgPUiC86ebQsnB1gJivjF1Q6eFh2"
       "address": "rN4zqLsbBu4Swo1yRLEVKW4AsHYQrfQMj",
       "seed": "sEdT79gHk6rK7ECYLEcYNB2db8FYFN3"
     },
@@ -26,6 +45,8 @@
   "demoUsers": {
     "user1": {
       "label": "US User",
+      "address": "rDePrCNLjSGYoXkoQ9MDUenMPLoqfsD9XC",
+      "seed": "sEd7yMQwvuZyQkh9C9s3ZTKyh5NKrqQ",
       "address": "rs5WHPMWDXP5mL9qG6pxDLE8s1aSAdBU3j",
       "seed": "sEdV3G6ARKeeJjua3vSv597tHXyo6sd",
       "balances": {
@@ -35,6 +56,8 @@
     },
     "user2": {
       "label": "India User",
+      "address": "rG7nyagrRM62DgWo5foW7WZmwYqZNXVyG7",
+      "seed": "sEdSAgqJrD94vFGrZTFFMbxk2XcC8HS",
       "address": "rM6HBtnMHQXfhh6xp5B5s3HumycwYWgYKd",
       "seed": "sEdSSdu1Mwpzb6bmnFCofw4eqPHgMxh",
       "balances": {
@@ -55,5 +78,5 @@
     "EUR/XRP": "1 EUR = 0.55 XRP (1 USD ≈ 0.92 EUR)",
     "NGN/XRP": "1 NGN = 0.00032 XRP (1 USD ≈ 1550 NGN)"
   },
-  "createdAt": "2026-03-07T23:36:13.676Z"
+  "createdAt": "2026-03-08T00:20:13.792Z"
 }

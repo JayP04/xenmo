@@ -8,6 +8,7 @@ export default function SendCode() {
   const { wallet } = useWallet();
   const router = useRouter();
   const [xrpAmount, setXrpAmount] = useState('');
+  const [recipientUsername, setRecipientUsername] = useState('');
   const [creating, setCreating] = useState(false);
   const [escrow, setEscrow] = useState(null); // { code, expiresAt, amount }
   const [timeLeft, setTimeLeft] = useState(0);
@@ -35,6 +36,7 @@ export default function SendCode() {
         body: JSON.stringify({
           senderSeed: wallet.seed,
           xrpAmount,
+          recipientUsername: recipientUsername.trim() || undefined,
           cancelSeconds: 300,
         }),
       });
@@ -58,7 +60,9 @@ export default function SendCode() {
           <div className="text-4xl mb-2">🔑</div>
           <h2 className="text-xl font-bold text-gray-900">Share This Code</h2>
           <p className="text-sm text-gray-500 mt-1">
-            Recipient enters this at <span className="font-mono text-brand-600">/claim</span>
+            {escrow.recipientUsername
+              ? <>Code sent — it&apos;ll appear on <span className="font-semibold text-brand-600">@{escrow.recipientUsername}</span>&apos;s requests page</>
+              : <>Recipient enters this at <span className="font-mono text-brand-600">/claim</span></>}
           </p>
         </div>
 
@@ -97,10 +101,20 @@ export default function SendCode() {
     <div className="px-4 pt-6">
       <h2 className="text-xl font-bold text-gray-900 mb-2">Send via Code</h2>
       <p className="text-sm text-gray-500 mb-6">
-        Generate a 6-digit code to share with anyone. They claim the funds at the /claim page — no app install needed.
+        Generate a secure code. If you specify a recipient, it&apos;ll show on their Requests page. Otherwise, share the code and they claim at /claim.
       </p>
 
       <div className="space-y-4">
+        <div>
+          <label className="text-sm text-gray-500 mb-1 block">Recipient username (optional)</label>
+          <input
+            value={recipientUsername}
+            onChange={(e) => setRecipientUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase())}
+            placeholder="e.g. jayp"
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-brand-500"
+          />
+          <p className="text-xs text-gray-400 mt-1">Leave blank to send to anyone with the code.</p>
+        </div>
         <div>
           <label className="text-sm text-gray-500 mb-1 block">Amount (XRP)</label>
           <input

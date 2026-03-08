@@ -5,7 +5,7 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import * as xrpl from 'xrpl';
-import { generateEscrowCode, createEscrow, reconstructFulfillment, finishEscrow } from '@/lib/xrpl-escrow';
+import { generateEscrowCode, codeToCondition, createEscrow, finishEscrow } from '@/lib/xrpl-escrow';
 import { supabase } from '@/lib/supabase';
 
 export async function POST(req) {
@@ -71,21 +71,27 @@ export async function POST(req) {
         cancelSeconds || 600 // 10 min default for splits
       );
 
-      await supabase.from('escrow_codes').insert({
+      const { error: insertErr } = await supabase.from('escrow_codes').insert({
         human_code: codeData.humanCode,
-        preimage_hex: codeData.preimageHex,
+        preimage_hex: '',
         condition_hex: codeData.conditionHex,
-        fulfillment_hex: codeData.fulfillmentHex,
+        fulfillment_hex: '',
         owner_address: escrow.ownerAddress,
         destination_address: split.address,
         escrow_sequence: escrow.sequence,
         amount: split.amount,
+        status: 'pending',
         expires_at: new Date(escrow.expiresAt).toISOString(),
         tx_hash_create: escrow.hash,
         split_group_id: groupId,
         split_recipient_username: split.username,
         sender_username: senderUsername,
       });
+
+      if (insertErr) {
+        console.error('Split escrow DB insert failed:', insertErr);
+        throw new Error('Failed to save escrow code: ' + insertErr.message);
+      }
 
       results.push({
         username: split.username,
@@ -181,10 +187,13 @@ export async function PUT(req) {
       return NextResponse.json({ error: 'escrowId, code, and claimerSeed required' }, { status: 400 });
     }
 
-    // Fetch the escrow record and verify the code matches
+    // Derive condition + fulfillment from the code — DB is never consulted for the preimage
+    const normalizedCode = code.replace(/-/g, '').toUpperCase();
+    const { conditionHex: derivedCondition, fulfillmentHex } = codeToCondition(normalizedCode);
+
     const { data: escrowRecord, error: dbErr } = await supabase
       .from('escrow_codes')
-      .select('*')
+      .select('id, owner_address, escrow_sequence, condition_hex, expires_at, amount, status')
       .eq('id', escrowId)
       .eq('status', 'pending')
       .single();
@@ -193,7 +202,8 @@ export async function PUT(req) {
       return NextResponse.json({ error: 'Split not found or already claimed' }, { status: 404 });
     }
 
-    if (escrowRecord.human_code !== code.trim()) {
+    // Cryptographic verification: code must produce the condition committed on-chain
+    if (derivedCondition !== escrowRecord.condition_hex) {
       return NextResponse.json({ error: 'Incorrect code' }, { status: 403 });
     }
 
@@ -202,14 +212,12 @@ export async function PUT(req) {
       return NextResponse.json({ error: 'This split has expired. Funds returned to sender.' }, { status: 410 });
     }
 
-    const fulfillment = reconstructFulfillment(escrowRecord.preimage_hex);
-
     const result = await finishEscrow(
       claimerSeed,
       escrowRecord.owner_address,
       escrowRecord.escrow_sequence,
       escrowRecord.condition_hex,
-      fulfillment
+      fulfillmentHex
     );
 
     const claimer = xrpl.Wallet.fromSeed(claimerSeed);
