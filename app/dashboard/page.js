@@ -78,24 +78,22 @@ export default function Dashboard() {
       {/* Balances */}
       <div className="space-y-2 mb-6">
         {balances ? (
-          Object.entries(balances).map(([currency, amount]) => {
-            const value = parseFloat(amount);
-            if (currency === 'XRP' && value < 1) return null; // hide tiny XRP dust
-            return (
+          Object.entries(balances)
+            .filter(([currency]) => currency !== 'XRP')
+            .map(([currency, amount]) => (
               <div key={currency} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{CURRENCY_FLAGS[currency] || '💰'}</span>
                   <div>
                     <p className="font-semibold text-gray-900">{currency}</p>
-                    <p className="text-xs text-gray-400">{currency === 'XRP' ? 'XRP Ledger' : 'Issued Token'}</p>
+                    <p className="text-xs text-gray-400">Balance</p>
                   </div>
                 </div>
                 <p className="font-bold text-gray-900 text-lg">
                   {CURRENCY_SYMBOLS[currency]}{parseFloat(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </div>
-            );
-          })
+            ))
         ) : (
           <div className="text-center text-gray-400 py-8 animate-pulse">Loading balances...</div>
         )}

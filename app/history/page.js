@@ -102,63 +102,33 @@ export default function History() {
                   </div>
                   <div className="text-right">
                     <p className={`font-bold ${colorClass}`}>
-                      {sign}{displayAmount} {displayCurrency}
+                      {sign}{parseFloat(displayAmount).toFixed(2)} {displayCurrency}
                     </p>
                   </div>
                 </div>
               </button>
 
-              {/* Expanded details (like test 4 output) */}
+              {/* Expanded details */}
               {isExpanded && (
                 <div className="px-4 pb-4 border-t border-gray-100 pt-3 space-y-2">
                   <div className="flex justify-between text-xs">
                     <span className="text-gray-400">Amount sent</span>
-                    <span className="font-medium">{tx.amountSent} {tx.currencySent}</span>
+                    <span className="font-medium">{parseFloat(tx.amountSent).toFixed(2)} {tx.currencySent}</span>
                   </div>
                   <div className="flex justify-between text-xs">
                     <span className="text-gray-400">Amount received</span>
-                    <span className="font-medium text-green-600">{tx.amountReceived} {tx.currencyReceived}</span>
+                    <span className="font-medium text-green-600">{parseFloat(tx.amountReceived).toFixed(2)} {tx.currencyReceived}</span>
                   </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-400">Effective rate</span>
-                    <span>1 {tx.currencySent} = {tx.effectiveRate} {tx.currencyReceived}</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-400">XRPL fee</span>
-                    <span className="text-green-600">{tx.xrplFee} XRP (~$0.00)</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-400">Path</span>
-                    <span>{tx.pathSource || 'auto'}</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-400">Sender</span>
-                    <span className="font-mono">{tx.sender?.slice(0, 12)}...</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-400">Receiver</span>
-                    <span className="font-mono">{tx.receiver?.slice(0, 12)}...</span>
-                  </div>
-
-                  {/* Balance changes breakdown */}
-                  {tx.balanceChanges && tx.balanceChanges.length > 0 && (
-                    <div className="bg-gray-50 rounded-lg p-3 mt-2">
-                      <p className="text-xs font-semibold text-gray-600 mb-2">Balance Changes:</p>
-                      {tx.balanceChanges.map((change, i) => (
-                        <div key={i}>
-                          {change.balances.map((bal, j) => (
-                            <div key={j} className="flex justify-between text-xs font-mono">
-                              <span className="text-gray-400">{change.account?.slice(0, 8)}...</span>
-                              <span className={parseFloat(bal.value) >= 0 ? 'text-green-600' : 'text-red-400'}>
-                                {parseFloat(bal.value) >= 0 ? '+' : ''}{bal.value} {bal.currency === 'drops' ? 'XRP' : bal.currency}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      ))}
+                  {tx.currencySent !== tx.currencyReceived && (
+                    <div className="flex justify-between text-xs">
+                      <span className="text-gray-400">Exchange rate</span>
+                      <span>1 {tx.currencySent} = {tx.effectiveRate} {tx.currencyReceived}</span>
                     </div>
                   )}
-
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-400">Fee</span>
+                    <span className="text-green-600">{tx.fee || '$0.00'}</span>
+                  </div>
                   <a
                     href={tx.explorerUrl}
                     target="_blank"
