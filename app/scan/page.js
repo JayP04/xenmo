@@ -60,20 +60,20 @@ export default function Scan() {
 
   return (
     <div className="px-4 pt-6">
-      <h2 className="text-xl font-bold text-gray-900 mb-4">Scan QR Code</h2>
-      <p className="text-sm text-gray-500 mb-4">Point your camera at the recipient's QR code.</p>
+      <h2 className="text-xl font-bold text-[#F5F5F7] mb-4">Scan QR Code</h2>
+      <p className="text-sm text-[#8E8E93] mb-4">Point your camera at the recipient&apos;s QR code.</p>
 
-      <div className="bg-black rounded-2xl overflow-hidden mb-4" style={{ minHeight: 300 }}>
+      <div className="rounded-2xl overflow-hidden mb-4 card" style={{ minHeight: 300 }}>
         <div id="qr-reader" ref={containerRef} />
       </div>
 
       {error && (
-        <div className="bg-red-50 text-red-600 text-sm p-3 rounded-xl mb-4">{error}</div>
+        <div className="text-[#FF453A] text-sm p-3 rounded-xl mb-4 card">{error}</div>
       )}
 
       <button
         onClick={() => router.push('/send')}
-        className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium"
+        className="w-full py-3 rounded-xl text-sm font-medium text-[#8E8E93] card"
       >
         Enter address manually instead
       </button>

@@ -51,23 +51,23 @@ export default function Claim() {
       <div className="px-4 pt-16">
         <div className="text-center mb-6">
           <div className="text-5xl mb-3">🎉</div>
-          <h2 className="text-xl font-bold text-gray-900">Funds Claimed!</h2>
-          <p className="text-lg font-semibold text-green-600 mt-2">{result.amount} {result.currency || 'USD'} received</p>
+          <h2 className="text-xl font-bold text-[#F5F5F7]">Funds Claimed!</h2>
+          <p className="text-lg font-semibold text-[#30D158] mt-2">{result.amount} {result.currency || 'USD'} received</p>
         </div>
-        <div className="bg-white rounded-2xl p-4 shadow-sm">
+        <div className="card rounded-2xl p-4">
           <a
             href={result.explorerUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-brand-600 text-sm font-medium block text-center"
+            className="text-[#0A84FF] text-sm font-medium block text-center"
           >
             View on XRPL Explorer →
           </a>
         </div>
         {newWallet && (
-          <div className="mt-4 bg-brand-50 rounded-2xl p-4">
-            <p className="text-sm font-semibold text-gray-700 mb-2">Your new wallet seed (save this!):</p>
-            <code className="text-xs font-mono text-brand-800 break-all select-all">{newWallet.seed}</code>
+          <div className="card rounded-2xl p-4 mt-4">
+            <p className="text-sm font-semibold text-[#F5F5F7] mb-2">Your new wallet seed (save this!):</p>
+            <code className="text-xs font-mono text-[#FF9F0A] break-all select-all">{newWallet.seed}</code>
           </div>
         )}
       </div>
@@ -77,21 +77,21 @@ export default function Claim() {
   return (
     <div className="px-4 pt-12">
       <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">
-          Remit<span className="text-brand-600">X</span> Claim
+        <h1 className="text-2xl font-bold text-[#F5F5F7]">
+          Remit<span className="text-[#0A84FF]">X</span> Claim
         </h1>
-        <p className="text-sm text-gray-500 mt-2">Enter your 6-digit code to receive funds.</p>
+        <p className="text-sm text-[#8E8E93] mt-2">Enter your 6-digit code to receive funds.</p>
       </div>
 
       <div className="space-y-4">
         <div>
-          <label className="text-sm text-gray-500 mb-1 block">6-digit code</label>
+          <label className="text-sm text-[#8E8E93] mb-1 block">6-digit code</label>
           <input
             value={code}
             onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
             placeholder="847291"
             maxLength={6}
-            className="w-full px-4 py-4 border border-gray-200 rounded-xl text-center text-3xl font-mono tracking-[0.4em] focus:outline-none focus:border-brand-500"
+            className="input-field w-full px-4 py-4 rounded-xl text-center text-3xl font-mono tracking-[0.4em]"
           />
         </div>
 
@@ -99,13 +99,13 @@ export default function Claim() {
         <div className="flex gap-2">
           <button
             onClick={() => setMode('existing')}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium ${mode === 'existing' ? 'bg-brand-600 text-white' : 'bg-gray-100 text-gray-600'}`}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium ${mode === 'existing' ? 'bg-[#0A84FF] text-white' : 'card text-[#8E8E93]'}`}
           >
             I have a wallet
           </button>
           <button
             onClick={() => { setMode('new'); if (!newWallet) createWalletFirst(); }}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium ${mode === 'new' ? 'bg-brand-600 text-white' : 'bg-gray-100 text-gray-600'}`}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium ${mode === 'new' ? 'bg-[#0A84FF] text-white' : 'card text-[#8E8E93]'}`}
           >
             Create new wallet
           </button>
@@ -116,22 +116,22 @@ export default function Claim() {
             value={seed}
             onChange={(e) => setSeed(e.target.value)}
             placeholder="Your wallet seed (sEdXXX...)"
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl font-mono text-sm focus:outline-none focus:border-brand-500"
+            className="input-field w-full px-4 py-3 rounded-xl font-mono text-sm"
           />
         )}
 
         {mode === 'new' && newWallet && (
-          <div className="bg-green-50 rounded-xl p-3">
-            <p className="text-xs text-green-700">Wallet created: <span className="font-mono">{newWallet.address.slice(0, 12)}...</span></p>
+          <div className="card rounded-xl p-3">
+            <p className="text-xs text-[#30D158]">Wallet created: <span className="font-mono">{newWallet.address.slice(0, 12)}...</span></p>
           </div>
         )}
 
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error && <p className="text-[#FF453A] text-sm">{error}</p>}
 
         <button
           onClick={handleClaim}
           disabled={claiming || code.length !== 6 || !seed}
-          className="w-full py-4 bg-brand-600 text-white rounded-2xl font-semibold disabled:opacity-50"
+          className="w-full py-4 rounded-2xl font-semibold bg-[#0A84FF] text-white disabled:opacity-50"
         >
           {claiming ? 'Claiming...' : 'Claim Funds'}
         </button>

@@ -4,8 +4,8 @@
   "description": "Cross-border P2P payments on the XRP Ledger",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f8f7f4",
-  "theme_color": "#ee7512",
+  "background_color": "#161618",
+  "theme_color": "#0A84FF",
   "icons": [
     {
       "src": "/icon-192.png",

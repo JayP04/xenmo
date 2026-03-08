@@ -14,8 +14,11 @@ const tabs = [
 export default function Nav() {
   const pathname = usePathname();
 
+  // Hide nav on landing page
+  if (pathname === '/') return null;
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+    <nav className="fixed bottom-0 left-0 right-0 z-50" style={{ background: '#1C1C1E', borderTop: '1px solid #2C2C2E' }}>
       <div className="max-w-md mx-auto flex justify-around py-2">
         {tabs.map((tab) => {
           const active = pathname === tab.href;
@@ -24,7 +27,7 @@ export default function Nav() {
               key={tab.href}
               href={tab.href}
               className={`flex flex-col items-center px-3 py-1 text-xs transition-colors ${
-                active ? 'text-brand-600 font-semibold' : 'text-gray-400'
+                active ? 'text-[#0A84FF] font-semibold' : 'text-[#8E8E93]'
               }`}
             >
               <span className="text-lg mb-0.5">{tab.icon}</span>
