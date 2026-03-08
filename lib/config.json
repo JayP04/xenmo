@@ -3,31 +3,31 @@
   "explorerUrl": "https://testnet.xrpl.org",
   "issuers": {
     "USD": {
-      "address": "rNn5nwjsW1ZR1ar7Tk1SNFEEm4Kap27tD5",
-      "seed": "sEdSdfAH21SU8rY6iruVnE1rj2KKiJL"
+      "address": "rN4zqLsbBu4Swo1yRLEVKW4AsHYQrfQMj",
+      "seed": "sEdT79gHk6rK7ECYLEcYNB2db8FYFN3"
     },
     "INR": {
-      "address": "rKtKVxR4Pw8YLcxfGTRUseFgvZRqMPnqbC",
-      "seed": "sEdVrQJy6Pz1L6KkskuSGAJ5Z6uWwVL"
+      "address": "rGrQCk56hNhogNL7YQeESGzgMcSi52GczU",
+      "seed": "sEdVoQtEpsUzXwDjbzziDTNk1GRjzhG"
     },
     "EUR": {
-      "address": "rEhE2dd44EjhftmXi9vGuQZ1ZQj2Pkn8ev",
-      "seed": "sEdTqBT4PMDWPqQLtozDkEQPLEjekjW"
+      "address": "rNDgH87Lf9xQa8WdAsk9RVpj9KfRPVhCVs",
+      "seed": "sEdTVNCXD5UPGM9mx6HMVzzmFyrUQmB"
     },
     "NGN": {
-      "address": "rM3FX9GyW5BEEF9aFAKmBfaDHVQun3Vs5S",
-      "seed": "sEdSMbGGR7ksFoUBVyGUZr9Y9gFTUfD"
+      "address": "rBz7reDA8RDaXK5urAcqc55tRoZarR2f7",
+      "seed": "sEdS4VA7dch9PcWm6avNuqB5m9E26Kc"
     }
   },
   "lp": {
-    "address": "rHVPkG7wKjBEaQUMPY1NT8hftDzmpbA1pg",
-    "seed": "sEd77THjhrAxFgmEDt3izH2rskU1wUy"
+    "address": "rpfu67Wk93WGp6JpLXzLc827o7Sjh1vCYL",
+    "seed": "sEdTYZKTmm1QA1dw3aAAntFULyms77j"
   },
   "demoUsers": {
     "user1": {
       "label": "US User",
-      "address": "rDjQcwmZkduufSMi7sFeiBULqAu3VEoHkT",
-      "seed": "sEdV6AFk8AoZbyjVaaMmFawDiSFRwFC",
+      "address": "rs5WHPMWDXP5mL9qG6pxDLE8s1aSAdBU3j",
+      "seed": "sEdV3G6ARKeeJjua3vSv597tHXyo6sd",
       "balances": {
         "USD": "500",
         "EUR": "200"
@@ -35,8 +35,8 @@
     },
     "user2": {
       "label": "India User",
-      "address": "rLSYVc7BFzRwCEN3qBH3kh5FWyi8Nk7hpb",
-      "seed": "sEd77yLXteyXH6TXrHaEy8ZtDBjReJT",
+      "address": "rM6HBtnMHQXfhh6xp5B5s3HumycwYWgYKd",
+      "seed": "sEdSSdu1Mwpzb6bmnFCofw4eqPHgMxh",
       "balances": {
         "INR": "25000"
       }
@@ -55,5 +55,5 @@
     "EUR/XRP": "1 EUR = 0.55 XRP (1 USD ≈ 0.92 EUR)",
     "NGN/XRP": "1 NGN = 0.00032 XRP (1 USD ≈ 1550 NGN)"
   },
-  "createdAt": "2026-03-07T19:32:37.937Z"
+  "createdAt": "2026-03-07T23:36:13.676Z"
 }
