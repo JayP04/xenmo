@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "RemitX",
-  "short_name": "RemitX",
+  "name": "Xenmo",
+  "short_name": "Xenmo",
   "description": "Cross-border P2P payments on the XRP Ledger",
   "start_url": "/",
   "scope": "/",

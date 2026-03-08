@@ -10,22 +10,22 @@ export function WalletProvider({ children }) {
 
   // Restore wallet from sessionStorage on mount
   useEffect(() => {
-    const saved = sessionStorage.getItem('remitx_wallet');
+    const saved = sessionStorage.getItem('xenmo_wallet');
     if (saved) {
       try { setWallet(JSON.parse(saved)); } catch (e) { /* ignore */ }
     }
     setLoading(false);
   }, []);
 
-  const login = (address, seed, username) => {
-    const w = { address, seed, username };
+  const login = (address, seed, username, baseCurrency) => {
+    const w = { address, seed, username, baseCurrency };
     setWallet(w);
-    sessionStorage.setItem('remitx_wallet', JSON.stringify(w));
+    sessionStorage.setItem('xenmo_wallet', JSON.stringify(w));
   };
 
   const logout = () => {
     setWallet(null);
-    sessionStorage.removeItem('remitx_wallet');
+    sessionStorage.removeItem('xenmo_wallet');
   };
 
   return (

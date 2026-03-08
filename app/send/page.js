@@ -241,7 +241,7 @@ function SendInner() {
               <span className="text-[#F5F5F7]">1 {fromCurrency} = {rate.rate.toFixed(2)} {toCurrency}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-[#8E8E93]">RemitX fee</span>
+              <span className="text-[#8E8E93]">Xenmo fee</span>
               <span className="font-medium text-[#30D158]">{rate.fee}</span>
             </div>
             <div className="border-t border-[#2C2C2E] pt-2 mt-2">
@@ -250,7 +250,7 @@ function SendInner() {
                 <div className="flex justify-between text-[#8E8E93]"><span>Western Union</span><span className="text-[#FF453A]">~${rate.competitors.westernUnion.total} in fees</span></div>
                 <div className="flex justify-between text-[#8E8E93]"><span>Wise</span><span className="text-[#FF9F0A]">~${rate.competitors.wise.total} in fees</span></div>
                 <div className="flex justify-between text-[#8E8E93]"><span>Bank Wire</span><span className="text-[#FF453A]">~${rate.competitors.bankWire.total} in fees</span></div>
-                <div className="flex justify-between font-semibold text-[#F5F5F7]"><span>RemitX</span><span className="text-[#30D158]">{CURRENCY_SYMBOLS[fromCurrency]}{rate.competitors.remitx.total} in fees</span></div>
+                <div className="flex justify-between font-semibold text-[#F5F5F7]"><span>Xenmo</span><span className="text-[#30D158]">{CURRENCY_SYMBOLS[fromCurrency]}{rate.competitors.remitx.total} in fees</span></div>
               </div>
             </div>
           </div>

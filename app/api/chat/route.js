@@ -1,11 +1,11 @@
 // app/api/chat/route.js
-// Proxies chat messages to Google Gemini API with RemitX context
+// Proxies chat messages to Google Gemini API with Xenmo context
 import { NextResponse } from 'next/server';
 import { getRate } from '@/lib/xrpl-payment';
 
-const SYSTEM_PROMPT = `You are RemitX Assistant, a helpful chatbot for a cross-border payment app built on the XRP Ledger.
+const SYSTEM_PROMPT = `You are Xenmo Assistant, a helpful chatbot for a cross-border payment app built on the XRP Ledger.
 
-About RemitX:
+About Xenmo:
 - Send money internationally with near-zero fees using XRPL blockchain
 - Supports USD, INR, EUR, NGN currencies
 - Three ways to send: QR scan, escrow code (6-digit), or direct address
@@ -63,7 +63,7 @@ export async function POST(req) {
           `Rate source: ${rateData.rateSource} (${rateData.rateSource === 'pathfind-amm' ? 'live AMM/DEX' : 'mid-market fallback'})\n` +
           `Competitors: Western Union total=$${rateData.competitors.westernUnion.total}, ` +
           `Wise total=$${rateData.competitors.wise.total}, Bank wire total=$${rateData.competitors.bankWire.total}, ` +
-          `RemitX total=$${rateData.competitors.remitx.total}`;
+          `Xenmo total=$${rateData.competitors.remitx.total}`;
       } catch (e) {
         console.error('Rate fetch for chat failed:', e.message);
       }

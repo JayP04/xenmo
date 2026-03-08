@@ -92,7 +92,7 @@ export default function Home() {
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       setCreatedSeed(data.seed);
-      login(data.address, data.seed, data.username);
+      login(data.address, data.seed, data.username, data.baseCurrency || currency);
     } catch (err) {
       setError(err.message);
     }
@@ -110,7 +110,7 @@ export default function Home() {
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
-      login(data.address, seed, data.username);
+      login(data.address, seed, data.username, data.baseCurrency || currency);
       router.push('/dashboard');
     } catch (err) {
       setError(err.message);
@@ -161,7 +161,7 @@ export default function Home() {
       {/* Title — clean, no globe behind */}
       <div className="text-center pt-12 pb-3 flex-shrink-0 relative z-10">
         <h1 className="text-4xl font-bold">
-          <span className="text-[#F5F5F7]">Remit</span><span className="text-[#0A84FF]">X</span>
+          <span className="text-[#F5F5F7]">Xen</span><span className="text-[#0A84FF]">mo</span>
         </h1>
         <p className="text-[#8E8E93] text-sm mt-1">Send money anywhere. Instantly.</p>
       </div>

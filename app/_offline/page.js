@@ -6,7 +6,7 @@ export default function OfflinePage() {
       <div className="text-6xl mb-6">📡</div>
       <h1 className="text-2xl font-semibold text-[#F5F5F7] mb-3">You're Offline</h1>
       <p className="text-[#8E8E93] text-base mb-8 max-w-xs">
-        Check your internet connection and try again. RemitX needs a connection to process payments.
+        Check your internet connection and try again. Xenmo needs a connection to process payments.
       </p>
       <button
         onClick={() => window.location.reload()}

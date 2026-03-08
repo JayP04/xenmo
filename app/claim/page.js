@@ -78,7 +78,7 @@ export default function Claim() {
     <div className="px-4 pt-6">
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold text-[#F5F5F7]">
-          Remit<span className="text-[#0A84FF]">X</span> Claim
+          Xen<span className="text-[#0A84FF]">mo</span> Claim
         </h1>
         <p className="text-sm text-[#8E8E93] mt-2">Enter your 6-digit code to receive funds.</p>
       </div>

@@ -5,13 +5,13 @@ import Nav from './components/Nav';
 import ChatBot from './components/ChatBot';
 
 export const metadata = {
-  title: 'RemitX — Send Money Anywhere',
+  title: 'Xenmo — Send Money Anywhere',
   description: 'Cross-border P2P payments on the XRP Ledger',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'RemitX',
+    title: 'Xenmo',
   },
 };
 

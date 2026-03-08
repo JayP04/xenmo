@@ -7,7 +7,7 @@ export default function ChatBot() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'bot', text: 'Hi! I\'m RemitX Assistant. Ask me anything about sending money internationally.' },
+    { role: 'bot', text: 'Hi! I\'m Xenmo Assistant. Ask me anything about sending money internationally.' },
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -51,7 +51,7 @@ export default function ChatBot() {
       {open && (
         <div className="fixed bottom-36 right-4 left-4 sm:left-auto z-50 sm:w-80 h-[28rem] max-h-[70vh] rounded-2xl flex flex-col overflow-hidden card" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
           <div className="px-4 py-3 text-sm font-semibold text-[#F5F5F7]" style={{ background: '#2C2C2E', borderBottom: '1px solid #3A3A3C' }}>
-            RemitX Assistant
+            Xenmo Assistant
           </div>
           <div className="flex-1 overflow-y-auto p-3 space-y-2">
             {messages.map((m, i) => (
