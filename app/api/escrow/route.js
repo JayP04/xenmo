@@ -2,16 +2,26 @@
 // POST: create escrow  |  PUT: finish/claim escrow  |  GET: pending escrows for a user
 import { NextResponse } from 'next/server';
 import * as xrpl from 'xrpl';
-import { generateEscrowCode, codeToCondition, createEscrow, finishEscrow } from '@/lib/xrpl-escrow';
+import { generateEscrowCode, codeToCondition, createEscrow, finishEscrow, burnTokens, mintTokensForClaim } from '@/lib/xrpl-escrow';
 import { supabase } from '@/lib/supabase';
+
+const MID_RATES_TO_XRP = { USD: 1.36, INR: 125, EUR: 1.17, NGN: 1878 };
+const VALID_CURRENCIES = ['USD', 'INR', 'EUR', 'NGN'];
 
 export async function POST(req) {
   try {
-    const { senderSeed, destinationAddress, recipientUsername, xrpAmount, cancelSeconds } = await req.json();
+    const { senderSeed, destinationAddress, recipientUsername, amount, currency, cancelSeconds } = await req.json();
 
-    if (!senderSeed || !xrpAmount) {
-      return NextResponse.json({ error: 'senderSeed and xrpAmount required' }, { status: 400 });
+    if (!senderSeed || !amount || !currency) {
+      return NextResponse.json({ error: 'senderSeed, amount, and currency required' }, { status: 400 });
     }
+
+    if (!VALID_CURRENCIES.includes(currency)) {
+      return NextResponse.json({ error: `Unsupported currency: ${currency}` }, { status: 400 });
+    }
+
+    // Convert user's currency amount to XRP for the on-chain escrow
+    const xrpAmount = (parseFloat(amount) / MID_RATES_TO_XRP[currency]).toFixed(6);
 
     // Resolve sender info
     const senderWallet = xrpl.Wallet.fromSeed(senderSeed);
@@ -39,6 +49,9 @@ export async function POST(req) {
     }
     if (!dest) dest = senderWallet.address;
 
+    // Burn sender's tokens so their dashboard balance decreases
+    await burnTokens(senderSeed, currency, amount);
+
     const codeData = generateEscrowCode();
 
     const escrow = await createEscrow(
@@ -50,13 +63,13 @@ export async function POST(req) {
     // condition_hex is the on-chain hash (public), stored here only to verify the code at claim.
     const { error: insertErr } = await supabase.from('escrow_codes').insert({
       human_code: codeData.humanCode,
-      preimage_hex: '',
+      preimage_hex: currency,
       condition_hex: codeData.conditionHex,
       fulfillment_hex: '',
       owner_address: escrow.ownerAddress,
       destination_address: resolvedRecipientUsername ? dest : null,
       escrow_sequence: escrow.sequence,
-      amount: xrpAmount,
+      amount: amount,
       status: 'pending',
       expires_at: new Date(escrow.expiresAt).toISOString(),
       tx_hash_create: escrow.hash,
@@ -73,7 +86,8 @@ export async function POST(req) {
       success: true,
       code: codeData.humanCode,
       expiresAt: escrow.expiresAt,
-      amount: xrpAmount,
+      displayAmount: amount,
+      currency: currency,
       txHash: escrow.hash,
       recipientUsername: resolvedRecipientUsername,
     });
@@ -98,7 +112,7 @@ export async function PUT(req) {
 
     const { data: escrowRecord, error: dbErr } = await supabase
       .from('escrow_codes')
-      .select('id, owner_address, escrow_sequence, condition_hex, expires_at, amount, status')
+      .select('id, owner_address, escrow_sequence, condition_hex, expires_at, amount, preimage_hex, status')
       .eq('human_code', normalizedCode)
       .eq('status', 'pending')
       .single();
@@ -128,6 +142,11 @@ export async function PUT(req) {
     );
 
     const claimer = xrpl.Wallet.fromSeed(claimerSeed);
+    const escrowCurrency = escrowRecord.preimage_hex || 'USD';
+
+    // Mint tokens to the claimer so their dashboard balance increases
+    await mintTokensForClaim(claimer.address, escrowCurrency, escrowRecord.amount);
+
     await supabase
       .from('escrow_codes')
       .update({ status: 'claimed', tx_hash_finish: result.hash, destination_address: claimer.address })
@@ -138,6 +157,7 @@ export async function PUT(req) {
       hash: result.hash,
       explorerUrl: result.explorerUrl,
       amount: escrowRecord.amount,
+      currency: escrowCurrency,
     });
   } catch (err) {
     console.error('Escrow finish failed:', err);
@@ -157,7 +177,7 @@ export async function GET(req) {
     // Fetch ALL pending escrow codes addressed to this user (both standalone and splits)
     const { data: escrows, error } = await supabase
       .from('escrow_codes')
-      .select('id, human_code, split_group_id, split_recipient_username, sender_username, amount, status, expires_at, created_at')
+      .select('id, human_code, split_group_id, split_recipient_username, sender_username, amount, preimage_hex, status, expires_at, created_at')
       .eq('destination_address', address)
       .eq('status', 'pending')
       .order('created_at', { ascending: false })
@@ -172,6 +192,7 @@ export async function GET(req) {
         groupId: e.split_group_id,
         senderUsername: e.sender_username,
         amount: e.amount,
+        currency: e.preimage_hex || 'USD',
         status: e.status,
         expiresAt: e.expires_at,
         createdAt: e.created_at,
