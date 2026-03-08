@@ -5,7 +5,7 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import * as xrpl from 'xrpl';
-import { generateEscrowCode, codeToCondition, createEscrow, finishEscrow } from '@/lib/xrpl-escrow';
+import { generateEscrowCode, codeToCondition, createEscrow, finishEscrow, burnTokens, mintTokensForClaim } from '@/lib/xrpl-escrow';
 import { supabase } from '@/lib/supabase';
 
 const MID_RATES_TO_XRP = { USD: 1.36, INR: 125, EUR: 1.17, NGN: 1878 };
@@ -66,6 +66,9 @@ export async function POST(req) {
 
     // Create an escrow for each recipient
     for (const split of resolvedSplits) {
+      // Burn sender's tokens so their dashboard balance decreases
+      await burnTokens(senderSeed, cur, split.amount);
+
       const codeData = generateEscrowCode();
 
       // Convert display amount to XRP for the on-chain escrow
@@ -232,6 +235,11 @@ export async function PUT(req) {
     );
 
     const claimer = xrpl.Wallet.fromSeed(claimerSeed);
+    const escrowCurrency = escrowRecord.preimage_hex || 'USD';
+
+    // Mint tokens to the claimer so their dashboard balance increases
+    await mintTokensForClaim(claimer.address, escrowCurrency, escrowRecord.amount);
+
     await supabase
       .from('escrow_codes')
       .update({ status: 'claimed', tx_hash_finish: result.hash, destination_address: claimer.address })
@@ -242,7 +250,7 @@ export async function PUT(req) {
       hash: result.hash,
       explorerUrl: result.explorerUrl,
       amount: escrowRecord.amount,
-      currency: escrowRecord.preimage_hex || 'USD',
+      currency: escrowCurrency,
     });
   } catch (err) {
     console.error('Split claim failed:', err);

@@ -2,7 +2,7 @@
 // POST: create escrow  |  PUT: finish/claim escrow  |  GET: pending escrows for a user
 import { NextResponse } from 'next/server';
 import * as xrpl from 'xrpl';
-import { generateEscrowCode, codeToCondition, createEscrow, finishEscrow } from '@/lib/xrpl-escrow';
+import { generateEscrowCode, codeToCondition, createEscrow, finishEscrow, burnTokens, mintTokensForClaim } from '@/lib/xrpl-escrow';
 import { supabase } from '@/lib/supabase';
 
 const MID_RATES_TO_XRP = { USD: 1.36, INR: 125, EUR: 1.17, NGN: 1878 };
@@ -48,6 +48,9 @@ export async function POST(req) {
       resolvedRecipientUsername = recipientUser.username;
     }
     if (!dest) dest = senderWallet.address;
+
+    // Burn sender's tokens so their dashboard balance decreases
+    await burnTokens(senderSeed, currency, amount);
 
     const codeData = generateEscrowCode();
 
@@ -139,6 +142,11 @@ export async function PUT(req) {
     );
 
     const claimer = xrpl.Wallet.fromSeed(claimerSeed);
+    const escrowCurrency = escrowRecord.preimage_hex || 'USD';
+
+    // Mint tokens to the claimer so their dashboard balance increases
+    await mintTokensForClaim(claimer.address, escrowCurrency, escrowRecord.amount);
+
     await supabase
       .from('escrow_codes')
       .update({ status: 'claimed', tx_hash_finish: result.hash, destination_address: claimer.address })
@@ -149,7 +157,7 @@ export async function PUT(req) {
       hash: result.hash,
       explorerUrl: result.explorerUrl,
       amount: escrowRecord.amount,
-      currency: escrowRecord.preimage_hex || 'USD',
+      currency: escrowCurrency,
     });
   } catch (err) {
     console.error('Escrow finish failed:', err);
