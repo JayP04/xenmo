@@ -4,6 +4,8 @@ import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useWallet } from '../components/WalletProvider';
 
+const CURRENCY_SYMBOLS = { USD: '$', INR: '₹', EUR: '€', NGN: '₦' };
+
 function SendInner() {
   const { wallet } = useWallet();
   const router = useRouter();
@@ -51,7 +53,7 @@ function SendInner() {
   const checkRate = async () => {
     setError('');
     try {
-      const res = await fetch(`/api/payment?from=${fromCurrency}&to=${toCurrency}&amount=${amount}`);
+      const res = await fetch(`/api/payment?from=${fromCurrency}&to=${toCurrency}&amount=${amount}&sender=${wallet.address}&receiver=${dest}`);
       const data = await res.json();
       if (data.success) setRate(data);
       else setError(data.error);
@@ -71,6 +73,7 @@ function SendInner() {
           amount: rate?.estimatedReceive || amount,
           destCurrency: toCurrency,
           sendMaxCurrency: fromCurrency,
+          sendAmount: amount,
         }),
       });
       const data = await res.json();
@@ -104,12 +107,8 @@ function SendInner() {
             <span>1 {receipt.currencySent} = {receipt.effectiveRate} {receipt.currencyReceived}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">XRPL Fee</span>
-            <span className="text-green-600">{receipt.xrplFee} XRP (~$0.00)</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-400">Path</span>
-            <span className="text-xs">{receipt.pathSource}</span>
+            <span className="text-gray-400">Fee</span>
+            <span className="text-green-600">{receipt.fee}</span>
           </div>
           <hr />
           <a
@@ -207,16 +206,16 @@ function SendInner() {
         {rate && (
           <div className="bg-brand-50 rounded-2xl p-4 space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">They receive</span>
-              <span className="font-bold text-lg text-brand-700">{rate.estimatedReceive} {toCurrency}</span>
+              <span className="text-gray-600">They receive (est.)</span>
+              <span className="font-bold text-lg text-brand-700">~{parseFloat(rate.estimatedReceive).toFixed(2)} {toCurrency}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Rate</span>
-              <span>1 {fromCurrency} = {rate.rate.toFixed(4)} {toCurrency}</span>
+              <span>1 {fromCurrency} = {rate.rate.toFixed(2)} {toCurrency}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">RemitX fee</span>
-              <span className="text-green-600 font-medium">$0.00</span>
+              <span className="font-medium">{rate.fee}</span>
             </div>
             <hr className="border-brand-200" />
             <p className="text-xs text-gray-500 font-medium">vs competitors for {amount} {fromCurrency}:</p>
@@ -224,7 +223,7 @@ function SendInner() {
               <div className="flex justify-between"><span>Western Union</span><span className="text-red-500">~${rate.competitors.westernUnion.total} total cost</span></div>
               <div className="flex justify-between"><span>Wise</span><span className="text-orange-500">~${rate.competitors.wise.total} total cost</span></div>
               <div className="flex justify-between"><span>Bank Wire</span><span className="text-red-500">~${rate.competitors.bankWire.total} total cost</span></div>
-              <div className="flex justify-between font-semibold"><span>RemitX</span><span className="text-green-600">~${rate.competitors.remitx.total} total cost</span></div>
+              <div className="flex justify-between font-semibold"><span>RemitX</span><span className="text-green-600">~{CURRENCY_SYMBOLS[fromCurrency]}{rate.competitors.remitx.total} total cost</span></div>
             </div>
           </div>
         )}

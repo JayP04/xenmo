@@ -5,6 +5,9 @@ import * as xrpl from 'xrpl';
 import { getClient } from '@/lib/xrpl-client';
 import config from '@/lib/config.json';
 
+const MID_RATES_TO_XRP = { USD: 1.36, INR: 125, EUR: 1.17, NGN: 1878 };
+const CURRENCY_SYMBOLS = { USD: '$', INR: '\u20b9', EUR: '\u20ac', NGN: '\u20a6' };
+
 // Only show these transaction types in history
 const SHOW_TYPES = new Set(['Payment', 'EscrowCreate', 'EscrowFinish']);
 
@@ -60,38 +63,49 @@ export async function GET(req) {
             ? 'XRP'
             : delivered?.currency || 'XRP';
 
-          // Figure out what the sender spent
+          // Figure out what the sender spent (hide XRP from users)
           const balanceChanges = xrpl.getBalanceChanges(meta);
           const senderChanges = balanceChanges.find((c) => c.account === tx.Account);
 
           let amountSent = '0';
-          let currencySent = 'XRP';
+          let currencySent = deliveredCurrency;
           if (senderChanges) {
             const nonFeeChange = senderChanges.balances.find(
               (b) => b.currency !== 'XRP' && parseFloat(b.value) < 0
             );
             if (nonFeeChange) {
-              amountSent = Math.abs(parseFloat(nonFeeChange.value)).toFixed(6);
+              amountSent = Math.abs(parseFloat(nonFeeChange.value)).toFixed(2);
               currencySent = nonFeeChange.currency;
             } else {
+              // AMM routed through XRP — convert back to a user currency
               const xrpChange = senderChanges.balances.find((b) => b.currency === 'XRP');
               if (xrpChange) {
-                amountSent = Math.abs(parseFloat(xrpChange.value)).toFixed(6);
-                currencySent = 'XRP';
+                const xrpSpent = Math.abs(parseFloat(xrpChange.value));
+                const guessedCurrency = deliveredCurrency !== 'XRP' ? deliveredCurrency : 'USD';
+                amountSent = (xrpSpent * (MID_RATES_TO_XRP[guessedCurrency] || 1)).toFixed(2);
+                currencySent = guessedCurrency;
               }
             }
           }
 
-          // For same-currency direct payments, amountSent may be 0 from sender perspective
-          // if the issuer balance change absorbs it. Use delivered amount as fallback.
           if (parseFloat(amountSent) === 0 && parseFloat(deliveredValue) > 0) {
-            amountSent = deliveredValue;
+            amountSent = parseFloat(deliveredValue).toFixed(2);
             currencySent = deliveredCurrency;
           }
 
           const effectiveRate = parseFloat(amountSent) > 0
             ? (parseFloat(deliveredValue) / parseFloat(amountSent)).toFixed(4)
             : '1';
+
+          // Fee = spread from mid-market in sender's currency
+          let feeDisplay = `${CURRENCY_SYMBOLS[currencySent] || ''}0.00`;
+          if (currencySent !== deliveredCurrency && parseFloat(amountSent) > 0) {
+            const midRate = (MID_RATES_TO_XRP[deliveredCurrency] || 1) / (MID_RATES_TO_XRP[currencySent] || 1);
+            const midReceive = parseFloat(amountSent) * midRate;
+            const spreadLoss = midReceive - parseFloat(deliveredValue);
+            const feeInSender = midRate > 0 ? Math.max(0, spreadLoss / midRate) : 0;
+            feeDisplay = `${CURRENCY_SYMBOLS[currencySent] || ''}${feeInSender.toFixed(2)}`;
+          }
 
           return {
             txHash: hash,
@@ -100,12 +114,11 @@ export async function GET(req) {
             receiver: tx.Destination,
             amountSent,
             currencySent,
-            amountReceived: deliveredValue,
+            amountReceived: parseFloat(deliveredValue).toFixed(2),
             currencyReceived: deliveredCurrency,
             effectiveRate,
-            xrplFee: fee,
+            fee: feeDisplay,
             explorerUrl: `${config.explorerUrl}/transactions/${hash}`,
-            balanceChanges,
             createdAt: date,
           };
         }
