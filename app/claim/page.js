@@ -48,9 +48,9 @@ export default function Claim() {
   // Success screen
   if (result) {
     return (
-      <div className="px-4 pt-16">
+      <div className="px-4 pt-8">
         <div className="text-center mb-6">
-          <div className="text-5xl mb-3">🎉</div>
+          <div className="text-4xl mb-3">🎉</div>
           <h2 className="text-xl font-bold text-[#F5F5F7]">Funds Claimed!</h2>
           <p className="text-lg font-semibold text-[#30D158] mt-2">{result.amount} {result.currency || 'USD'} received</p>
         </div>
@@ -75,8 +75,8 @@ export default function Claim() {
   }
 
   return (
-    <div className="px-4 pt-12">
-      <div className="text-center mb-8">
+    <div className="px-4 pt-6">
+      <div className="text-center mb-6">
         <h1 className="text-2xl font-bold text-[#F5F5F7]">
           Remit<span className="text-[#0A84FF]">X</span> Claim
         </h1>
@@ -91,7 +91,7 @@ export default function Claim() {
             onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
             placeholder="847291"
             maxLength={6}
-            className="input-field w-full px-4 py-4 rounded-xl text-center text-3xl font-mono tracking-[0.4em]"
+            className="input-field w-full px-4 py-4 rounded-xl text-center font-mono text-responsive-code"
           />
         </div>
 

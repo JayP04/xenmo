@@ -49,7 +49,7 @@ export default function ChatBot() {
 
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-36 right-4 z-50 w-80 h-96 rounded-2xl flex flex-col overflow-hidden card" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
+        <div className="fixed bottom-36 right-4 left-4 sm:left-auto z-50 sm:w-80 h-[28rem] max-h-[70vh] rounded-2xl flex flex-col overflow-hidden card" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
           <div className="px-4 py-3 text-sm font-semibold text-[#F5F5F7]" style={{ background: '#2C2C2E', borderBottom: '1px solid #3A3A3C' }}>
             RemitX Assistant
           </div>

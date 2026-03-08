@@ -70,7 +70,7 @@ export default function Dashboard() {
         </div>
         {showQR && (
           <div className="flex justify-center mt-4 p-4 bg-white rounded-xl">
-            <QRCodeSVG value={wallet.address} size={180} level="M" />
+            <QRCodeSVG value={wallet.address} size={Math.min(180, 320)} level="M" className="w-full max-w-[180px] h-auto" />
           </div>
         )}
       </div>

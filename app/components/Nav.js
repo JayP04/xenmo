@@ -18,8 +18,8 @@ export default function Nav() {
   if (pathname === '/') return null;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50" style={{ background: '#1C1C1E', borderTop: '1px solid #2C2C2E' }}>
-      <div className="max-w-md mx-auto flex justify-around py-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 safe-bottom" style={{ background: '#1C1C1E', borderTop: '1px solid #2C2C2E' }}>
+      <div className="max-w-md mx-auto flex justify-around py-2 px-1">
         {tabs.map((tab) => {
           const active = pathname === tab.href;
           return (
