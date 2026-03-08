@@ -8,6 +8,11 @@ export const metadata = {
   title: 'RemitX — Send Money Anywhere',
   description: 'Cross-border P2P payments on the XRP Ledger',
   manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'RemitX',
+  },
 };
 
 export default function RootLayout({ children }) {
@@ -16,13 +21,16 @@ export default function RootLayout({ children }) {
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <meta name="theme-color" content="#161618" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif", background: '#161618', color: '#F5F5F7' }}>
         <WalletProvider>
-          <main className="max-w-md mx-auto pb-20 min-h-screen">
+          <main className="max-w-md mx-auto pb-24 min-h-screen px-safe">
             {children}
           </main>
           <Nav />

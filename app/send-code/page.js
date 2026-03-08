@@ -68,8 +68,8 @@ export default function SendCode() {
           </p>
         </div>
 
-        <div className="card rounded-2xl p-8 text-center mb-4">
-          <p className="text-5xl font-mono font-bold tracking-[0.3em] text-[#F5F5F7] mb-4">
+        <div className="card rounded-2xl p-5 sm:p-8 text-center mb-4">
+          <p className="font-mono font-bold text-[#F5F5F7] mb-4 text-responsive-code">
             {escrow.code}
           </p>
           <p className="text-sm text-[#8E8E93]">
@@ -119,21 +119,21 @@ export default function SendCode() {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-sm text-gray-500 mb-1 block">Amount</label>
+            <label className="text-sm text-[#8E8E93] mb-1 block">Amount</label>
             <input
               type="number"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="50.00"
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-brand-500"
+              className="w-full px-4 py-3 rounded-xl text-sm input-field"
             />
           </div>
           <div>
-            <label className="text-sm text-gray-500 mb-1 block">Currency</label>
+            <label className="text-sm text-[#8E8E93] mb-1 block">Currency</label>
             <select
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white"
+              className="w-full px-4 py-3 rounded-xl text-sm input-field"
             >
               <option value="USD">USD</option>
               <option value="INR">INR</option>
@@ -141,7 +141,7 @@ export default function SendCode() {
               <option value="NGN">NGN</option>
             </select>
           </div>
-          <p className="text-xs text-gray-400 col-span-2">Funds locked for 5 minutes. Auto-refunded if unclaimed.</p>
+          <p className="text-xs text-[#636366] col-span-2">Funds locked for 5 minutes. Auto-refunded if unclaimed.</p>
         </div>
 
         {error && <p className="text-[#FF453A] text-sm">{error}</p>}
@@ -149,7 +149,7 @@ export default function SendCode() {
         <button
           onClick={handleCreate}
           disabled={creating || !amount}
-          className="w-full py-4 bg-brand-600 text-white rounded-2xl font-semibold disabled:opacity-50"
+          className="w-full py-4 bg-[#0A84FF] text-white rounded-2xl font-semibold disabled:opacity-50"
         >
           {creating ? 'Creating escrow...' : 'Generate Code'}
         </button>

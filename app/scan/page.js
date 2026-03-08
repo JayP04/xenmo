@@ -26,7 +26,7 @@ export default function Scan() {
 
         await html5QrCode.start(
           { facingMode: 'environment' },
-          { fps: 10, qrbox: { width: 250, height: 250 } },
+          { fps: 10, qrbox: { width: Math.min(250, window.innerWidth - 80), height: Math.min(250, window.innerWidth - 80) } },
           (decodedText) => {
             // QR decoded — could be an XRPL address (starts with 'r')
             html5QrCode.stop().catch(() => {});
@@ -63,7 +63,7 @@ export default function Scan() {
       <h2 className="text-xl font-bold text-[#F5F5F7] mb-4">Scan QR Code</h2>
       <p className="text-sm text-[#8E8E93] mb-4">Point your camera at the recipient&apos;s QR code.</p>
 
-      <div className="rounded-2xl overflow-hidden mb-4 card" style={{ minHeight: 300 }}>
+      <div className="rounded-2xl overflow-hidden mb-4 card" style={{ minHeight: 'min(300px, 50vh)' }}>
         <div id="qr-reader" ref={containerRef} />
       </div>
 

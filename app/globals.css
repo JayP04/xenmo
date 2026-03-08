@@ -80,3 +80,14 @@ select option {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #3A3A3C; border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: #48484A; }
+
+/* Safe area for notched phones (iOS) */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Responsive text that won't overflow on small screens */
+.text-responsive-code {
+  font-size: clamp(1.5rem, 8vw, 3rem);
+  letter-spacing: clamp(0.15em, 2vw, 0.4em);
+}
