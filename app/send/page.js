@@ -218,12 +218,12 @@ function SendInner() {
               <span className="font-medium">{rate.fee}</span>
             </div>
             <hr className="border-brand-200" />
-            <p className="text-xs text-gray-500 font-medium">vs competitors for {amount} {fromCurrency}:</p>
+            <p className="text-xs text-gray-500 font-medium">Fees to send {amount} {fromCurrency}:</p>
             <div className="text-xs space-y-1">
-              <div className="flex justify-between"><span>Western Union</span><span className="text-red-500">~${rate.competitors.westernUnion.total} total cost</span></div>
-              <div className="flex justify-between"><span>Wise</span><span className="text-orange-500">~${rate.competitors.wise.total} total cost</span></div>
-              <div className="flex justify-between"><span>Bank Wire</span><span className="text-red-500">~${rate.competitors.bankWire.total} total cost</span></div>
-              <div className="flex justify-between font-semibold"><span>RemitX</span><span className="text-green-600">~{CURRENCY_SYMBOLS[fromCurrency]}{rate.competitors.remitx.total} total cost</span></div>
+              <div className="flex justify-between"><span>Western Union</span><span className="text-red-500">~${rate.competitors.westernUnion.total} in fees</span></div>
+              <div className="flex justify-between"><span>Wise</span><span className="text-orange-500">~${rate.competitors.wise.total} in fees</span></div>
+              <div className="flex justify-between"><span>Bank Wire</span><span className="text-red-500">~${rate.competitors.bankWire.total} in fees</span></div>
+              <div className="flex justify-between font-semibold"><span>RemitX</span><span className="text-green-600">{CURRENCY_SYMBOLS[fromCurrency]}{rate.competitors.remitx.total} in fees</span></div>
             </div>
           </div>
         )}
