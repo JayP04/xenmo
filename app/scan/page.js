@@ -1,6 +1,6 @@
 // app/scan/page.js
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWallet } from '../components/WalletProvider';
 
@@ -11,60 +11,69 @@ export default function Scan() {
   const [scanning, setScanning] = useState(false);
   const [scannedAddress, setScannedAddress] = useState(null);
   const scannerRef = useRef(null);
-  const containerRef = useRef(null);
+  const stoppedRef = useRef(false);
 
-  // Navigate in a separate effect to avoid "Rendered more hooks" Next.js bug
+  // Navigate after scan via window.location to avoid Next.js Router bugs
   useEffect(() => {
     if (scannedAddress) {
-      router.push(`/send?to=${scannedAddress}`);
+      window.location.href = `/send?to=${encodeURIComponent(scannedAddress)}`;
     }
-  }, [scannedAddress, router]);
+  }, [scannedAddress]);
+
+  const stopScanner = useCallback(() => {
+    if (scannerRef.current && !stoppedRef.current) {
+      stoppedRef.current = true;
+      scannerRef.current.stop().catch(() => {});
+    }
+  }, []);
 
   useEffect(() => {
-    if (!wallet) { router.push('/'); return; }
+    if (!wallet) return;
 
     let html5QrCode = null;
 
     const startScanner = async () => {
       try {
-        // Dynamic import to avoid SSR issues
         const { Html5Qrcode } = await import('html5-qrcode');
         html5QrCode = new Html5Qrcode('qr-reader');
         scannerRef.current = html5QrCode;
+        stoppedRef.current = false;
 
         await html5QrCode.start(
           { facingMode: 'environment' },
           { fps: 10, qrbox: { width: Math.min(250, window.innerWidth - 80), height: Math.min(250, window.innerWidth - 80) } },
           (decodedText) => {
-            // QR decoded — could be an XRPL address (starts with 'r')
-            html5QrCode.stop().catch(() => {});
+            stopScanner();
             const address = decodedText.trim();
-
             if (address.startsWith('r') && address.length >= 25) {
               setScannedAddress(address);
             } else {
-              setError(`Invalid address: ${address}`);
+              setError(`Invalid QR code`);
               setScanning(false);
             }
           },
-          () => {} // ignore scan failures
+          () => {}
         );
         setScanning(true);
       } catch (err) {
-        setError('Camera access denied or not available. Try entering the address manually.');
+        setError('Camera access denied or not available.');
       }
     };
 
     startScanner();
 
-    return () => {
-      if (scannerRef.current) {
-        scannerRef.current.stop().catch(() => {});
-      }
-    };
-  }, [wallet, router]);
+    return () => stopScanner();
+  }, [wallet, stopScanner]);
 
   if (!wallet) return null;
+
+  if (scannedAddress) {
+    return (
+      <div className="flex items-center justify-center h-screen text-[#8E8E93]">
+        Opening send...
+      </div>
+    );
+  }
 
   return (
     <div className="px-4 pt-6">
@@ -72,7 +81,7 @@ export default function Scan() {
       <p className="text-sm text-[#8E8E93] mb-4">Point your camera at the recipient&apos;s QR code.</p>
 
       <div className="rounded-2xl overflow-hidden mb-4 card" style={{ minHeight: 'min(300px, 50vh)' }}>
-        <div id="qr-reader" ref={containerRef} />
+        <div id="qr-reader" />
       </div>
 
       {error && (
