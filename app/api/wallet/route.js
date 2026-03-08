@@ -1,5 +1,6 @@
 // app/api/wallet/route.js
 // POST: create new wallet  |  PUT: import existing  |  GET: balances
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { createWallet, importWallet, getBalances, mintTokens } from '@/lib/xrpl-wallet';
 import { supabase } from '@/lib/supabase';

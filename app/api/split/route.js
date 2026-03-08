@@ -262,6 +262,7 @@
 // POST: create a split payment (multiple escrows from one sender)
 // GET: get pending splits for a recipient (by address)
 // PUT: claim a split escrow with code
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import * as xrpl from 'xrpl';

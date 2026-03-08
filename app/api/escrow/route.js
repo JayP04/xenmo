@@ -1,5 +1,6 @@
 // app/api/escrow/route.js
 // POST: create escrow  |  PUT: finish/claim escrow  |  GET: pending escrows for a user
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import * as xrpl from 'xrpl';
 import { generateEscrowCode, codeToCondition, createEscrow, finishEscrow, burnTokens, mintTokensForClaim } from '@/lib/xrpl-escrow';

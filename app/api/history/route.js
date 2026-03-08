@@ -1,5 +1,6 @@
 // app/api/history/route.js
 // GET: transaction history pulled directly from XRPL ledger (no DB needed)
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import * as xrpl from 'xrpl';
 import { getClient } from '@/lib/xrpl-client';

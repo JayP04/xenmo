@@ -1,5 +1,6 @@
 // app/api/payment/route.js
 // GET: exchange rate  |  POST: send payment
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { getRate, sendPayment } from '@/lib/xrpl-payment';
 

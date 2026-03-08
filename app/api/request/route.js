@@ -2,6 +2,7 @@
 // GET: list requests for an address
 // POST: create a new request
 // PUT: approve or decline a request
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
