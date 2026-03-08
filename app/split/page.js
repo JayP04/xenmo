@@ -109,7 +109,7 @@ export default function Split() {
           <div className="text-4xl mb-2">✅</div>
           <h2 className="text-xl font-bold text-[#F5F5F7]">Split Created!</h2>
           <p className="text-sm text-[#8E8E93] mt-1">
-            {result.splitCount} escrows locked on-chain · {result.totalAmount} XRP total
+            {result.splitCount} escrows created · {result.totalAmount} {result.currency || 'USD'} total
           </p>
         </div>
 
@@ -127,7 +127,7 @@ export default function Split() {
                   <span className="font-semibold text-[#F5F5F7]">@{s.username}</span>
                   {s.displayName && <span className="text-sm text-[#8E8E93] ml-2">{s.displayName}</span>}
                 </div>
-                <span className="font-bold text-[#F5F5F7]">{s.amount} XRP</span>
+                <span className="font-bold text-[#F5F5F7]">{s.amount} {result.currency || 'USD'}</span>
               </div>
               <div className="card-elevated rounded-lg p-3 flex items-center justify-between">
                 <div>
@@ -163,7 +163,7 @@ export default function Split() {
     <div className="px-4 pt-6 pb-8">
       <h2 className="text-xl font-bold text-[#F5F5F7] mb-1">Split Payment</h2>
       <p className="text-sm text-[#8E8E93] mb-6">
-        Split XRP between multiple people. Each gets a claim code.
+        Split money between multiple people. Each gets a claim code.
       </p>
 
       {/* Split mode toggle */}
@@ -185,17 +185,34 @@ export default function Split() {
       {/* Total amount (only for equal mode) */}
       {splitMode === 'equal' && (
         <div className="mb-5">
-          <label className="text-sm text-[#8E8E93] mb-1 block">Total Amount (XRP)</label>
-          <input
-            type="number"
-            value={totalAmount}
-            onChange={(e) => setTotalAmount(e.target.value)}
-            placeholder="100"
-            className="input-field w-full px-4 py-3 rounded-xl text-lg"
-          />
+          <div className="grid grid-cols-3 gap-3">
+            <div className="col-span-2">
+              <label className="text-sm text-[#8E8E93] mb-1 block">Total Amount</label>
+              <input
+                type="number"
+                value={totalAmount}
+                onChange={(e) => setTotalAmount(e.target.value)}
+                placeholder="100"
+                className="input-field w-full px-4 py-3 rounded-xl text-lg"
+              />
+            </div>
+            <div>
+              <label className="text-sm text-[#8E8E93] mb-1 block">Currency</label>
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className="input-field w-full px-4 py-3 rounded-xl text-lg"
+              >
+                <option value="USD">USD</option>
+                <option value="INR">INR</option>
+                <option value="EUR">EUR</option>
+                <option value="NGN">NGN</option>
+              </select>
+            </div>
+          </div>
           {equalAmount && recipients.length > 0 && (
             <p className="text-xs text-[#636366] mt-1">
-              = {equalAmount} XRP each × {recipients.length} {recipients.length === 1 ? 'person' : 'people'}
+              = {equalAmount} {currency} each × {recipients.length} {recipients.length === 1 ? 'person' : 'people'}
             </p>
           )}
         </div>
@@ -204,11 +221,11 @@ export default function Split() {
       {/* Currency selector for custom mode */}
       {splitMode === 'custom' && (
         <div className="mb-5">
-          <label className="text-sm text-gray-500 mb-1 block">Currency</label>
+          <label className="text-sm text-[#8E8E93] mb-1 block">Currency</label>
           <select
             value={currency}
             onChange={(e) => setCurrency(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white"
+            className="input-field w-full px-4 py-3 rounded-xl"
           >
             <option value="USD">USD</option>
             <option value="INR">INR</option>
@@ -240,7 +257,7 @@ export default function Split() {
                   type="number"
                   value={r.amount}
                   onChange={(e) => updateRecipient(i, 'amount', e.target.value)}
-                  placeholder="XRP"
+                  placeholder={currency}
                   className="input-field w-24 px-3 py-2 rounded-lg text-sm"
                 />
               )}
@@ -283,7 +300,7 @@ export default function Split() {
         <div className="card rounded-xl p-4 mb-5">
           <div className="flex justify-between text-sm mb-1">
             <span className="text-[#8E8E93]">Total</span>
-            <span className="font-bold text-[#F5F5F7]">{computedTotal} XRP</span>
+            <span className="font-bold text-[#F5F5F7]">{computedTotal} {currency}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-[#8E8E93]">Recipients</span>
@@ -291,10 +308,10 @@ export default function Split() {
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-[#8E8E93]">Each gets</span>
-            <span className="text-[#F5F5F7]">{splitMode === 'equal' ? equalAmount : 'Custom'} XRP</span>
+            <span className="text-[#F5F5F7]">{splitMode === 'equal' ? equalAmount : 'Custom'} {currency}</span>
           </div>
           <p className="text-xs text-[#636366] mt-2">
-            Escrow locks funds on-chain. Each person gets a 6-digit claim code. Unclaimed funds auto-refund in 10 min.
+            Each person gets a 6-digit claim code. Unclaimed funds auto-refund in 10 min.
           </p>
         </div>
       )}
